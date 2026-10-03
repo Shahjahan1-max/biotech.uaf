@@ -22,8 +22,8 @@ export function AnnouncementTypeBadge({ type }: AnnouncementTypeBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border',
-        'bg-teal-50 text-teal-700 border-teal-200'
+        'inline-flex shrink-0 items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-medium tracking-wide ring-1 ring-inset transition-colors duration-200',
+        'bg-teal-50 text-teal-700 ring-teal-600/15'
       )}
     >
       {label}

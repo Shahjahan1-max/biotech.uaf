@@ -11,17 +11,17 @@ const PRIORITIES: Record<
 > = {
   NORMAL: {
     label: 'Normal',
-    className: 'bg-neutral-100 text-neutral-700 border-neutral-200',
+    className: 'bg-neutral-100 text-neutral-700 ring-neutral-500/15',
     icon: '•',
   },
   IMPORTANT: {
     label: 'Important',
-    className: 'bg-amber-50 text-amber-700 border-amber-300',
+    className: 'bg-amber-50 text-amber-700 ring-amber-600/20',
     icon: '!',
   },
   URGENT: {
     label: 'Urgent',
-    className: 'bg-red-50 text-red-700 border-red-300',
+    className: 'bg-red-50 text-red-700 ring-red-600/20',
     icon: '!!',
   },
 }
@@ -32,7 +32,7 @@ export function AnnouncementPriorityBadge({ priority }: AnnouncementPriorityBadg
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border',
+        'inline-flex shrink-0 items-center gap-1 whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-medium tracking-wide ring-1 ring-inset transition-colors duration-200',
         config.className
       )}
     >
