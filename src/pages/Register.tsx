@@ -31,7 +31,7 @@ export function Register() {
 
     try {
       await register({ name, email, password })
-      navigate('/')
+      navigate('/login')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
     } finally {

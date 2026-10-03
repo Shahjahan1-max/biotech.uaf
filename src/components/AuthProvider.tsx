@@ -20,8 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function register(data: RegisterData) {
-    const user = await authService.register(data)
-    setUser(user)
+    await authService.register(data)
   }
 
   async function logout() {

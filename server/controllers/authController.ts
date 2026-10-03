@@ -23,7 +23,7 @@ function sessionCookieOptions() {
   return {
     httpOnly: true,
     secure: config.nodeEnv === 'production',
-    sameSite: 'lax' as const,
+    sameSite: (config.nodeEnv === 'production' ? 'none' : 'lax') as 'none' | 'lax',
     maxAge: cookieMaxAge(),
   }
 }
@@ -57,9 +57,6 @@ export async function register(req: Request, res: Response) {
       email: email.trim().toLowerCase(),
       password,
     })
-    const token = authService.generateToken(user)
-
-    res.cookie(config.cookieName, token, sessionCookieOptions())
 
     res.status(201).json({ user })
   } catch (error) {
@@ -99,7 +96,7 @@ export async function logout(_req: Request, res: Response) {
   res.clearCookie(config.cookieName, {
     httpOnly: true,
     secure: config.nodeEnv === 'production',
-    sameSite: 'lax',
+    sameSite: (config.nodeEnv === 'production' ? 'none' : 'lax') as 'none' | 'lax',
   })
   res.json({ message: 'Logged out successfully' })
 }
