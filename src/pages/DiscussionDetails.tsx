@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Spinner } from '../components/Spinner'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Badge } from '../components/Badge'
@@ -37,7 +37,6 @@ export function DiscussionDetails() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [isEditing, setIsEditing] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0)
 
   const [replyDraft, setReplyDraft] = useState('')
   const [replyError, setReplyError] = useState('')
@@ -74,15 +73,13 @@ export function DiscussionDetails() {
     return () => {
       active = false
     }
-  }, [id, refreshKey])
-
-  const refresh = useCallback(() => setRefreshKey((key) => key + 1), [])
+  }, [id])
 
   async function handleUpdate(input: DiscussionPostInput) {
     if (!post) return
-    await updateDiscussion(post.id, input)
+    const updated = await updateDiscussion(post.id, input)
+    setPost(updated)
     setIsEditing(false)
-    refresh()
   }
 
   async function handleDeletePost() {
@@ -112,9 +109,9 @@ export function DiscussionDetails() {
 
     setIsSubmittingReply(true)
     try {
-      await createReply(id, { content: replyDraft.trim() })
+      const reply = await createReply(id, { content: replyDraft.trim() })
       setReplyDraft('')
-      refresh()
+      setReplies((previous) => [...previous, reply])
     } catch (err) {
       setReplyError(err instanceof Error ? err.message : 'Failed to create reply')
     } finally {
@@ -123,13 +120,13 @@ export function DiscussionDetails() {
   }
 
   async function handleUpdateReply(replyId: string, content: string) {
-    await updateReply(replyId, { content })
-    refresh()
+    const updated = await updateReply(replyId, { content })
+    setReplies((previous) => previous.map((item) => (item.id === updated.id ? updated : item)))
   }
 
   async function handleDeleteReply(replyId: string) {
     await deleteReply(replyId)
-    refresh()
+    setReplies((previous) => previous.filter((item) => item.id !== replyId))
   }
 
   if (isLoading) {

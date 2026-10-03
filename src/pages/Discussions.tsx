@@ -96,10 +96,19 @@ export function Discussions() {
   }
 
   async function handleCreate(input: DiscussionPostInput) {
-    await createDiscussion(input)
+    const created = await createDiscussion(input)
     setShowForm(false)
     setPage(1)
-    refresh()
+    if (page === 1) {
+      setResult((previous) => ({
+        ...previous,
+        items: [created, ...previous.items],
+        total: previous.total + 1,
+        totalPages: Math.max(1, Math.ceil((previous.total + 1) / previous.limit)),
+      }))
+    } else {
+      refresh()
+    }
   }
 
   async function handleUpdate(input: DiscussionPostInput) {
