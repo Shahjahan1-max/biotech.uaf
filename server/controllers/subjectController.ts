@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
-import * as subjectService from '../services/subjectService'
-import { handleServiceError } from '../utils/handleServiceError'
+import * as subjectService from '../services/subjectService.js'
+import { handleServiceError } from '../utils/handleServiceError.js'
 
 const MAX_NAME_LENGTH = 200
 const MAX_CODE_LENGTH = 20

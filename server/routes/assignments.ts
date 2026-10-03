@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import * as assignmentController from '../controllers/assignmentController'
-import { requireAuth, requireRole } from '../middleware/auth'
+import * as assignmentController from '../controllers/assignmentController.js'
+import { requireAuth, requireRole } from '../middleware/auth.js'
 
 export const assignmentRoutes = Router()
 

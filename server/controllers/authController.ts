@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express'
-import * as authService from '../services/authService'
-import { config } from '../config/env'
-import { handleServiceError } from '../utils/handleServiceError'
+import * as authService from '../services/authService.js'
+import { config } from '../config/env.js'
+import { handleServiceError } from '../utils/handleServiceError.js'
 
 const MAX_NAME_LENGTH = 100
 const MAX_EMAIL_LENGTH = 254

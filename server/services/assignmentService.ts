@@ -1,6 +1,6 @@
-import { prisma } from '../utils/prisma'
-import type { Assignment, AssignmentInput } from '../types/assignment'
-import { excerpt, notifyStudents, safeNotify } from './notificationService'
+import { prisma } from '../utils/prisma.js'
+import type { Assignment, AssignmentInput } from '../types/assignment.js'
+import { excerpt, notifyStudents, safeNotify } from './notificationService.js'
 
 
 const FOURTY_EIGHT_HOURS = 48 * 60 * 60 * 1000

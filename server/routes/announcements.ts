@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import * as announcementController from '../controllers/announcementController'
-import { requireAuth, requireRole } from '../middleware/auth'
+import * as announcementController from '../controllers/announcementController.js'
+import { requireAuth, requireRole } from '../middleware/auth.js'
 
 export const announcementRoutes = Router()
 

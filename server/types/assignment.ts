@@ -1,4 +1,4 @@
-import type { Subject } from './subject'
+import type { Subject } from './subject.js'
 
 export type AssignmentStatus = 'UPCOMING' | 'DUE_SOON' | 'OVERDUE'
 

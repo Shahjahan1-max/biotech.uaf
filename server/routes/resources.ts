@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import * as resourceController from '../controllers/resourceController'
-import { requireAuth, requireRole } from '../middleware/auth'
+import * as resourceController from '../controllers/resourceController.js'
+import { requireAuth, requireRole } from '../middleware/auth.js'
 
 export const resourceRoutes = Router()
 

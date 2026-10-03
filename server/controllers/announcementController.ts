@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
-import * as announcementService from '../services/announcementService'
-import type { AnnouncementListFilters } from '../types/announcement'
+import * as announcementService from '../services/announcementService.js'
+import type { AnnouncementListFilters } from '../types/announcement.js'
 
 function optionalQuery(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined

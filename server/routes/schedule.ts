@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import * as scheduleController from '../controllers/scheduleController'
-import { requireAuth, requireRole } from '../middleware/auth'
+import * as scheduleController from '../controllers/scheduleController.js'
+import { requireAuth, requireRole } from '../middleware/auth.js'
 
 export const scheduleRoutes = Router()
 

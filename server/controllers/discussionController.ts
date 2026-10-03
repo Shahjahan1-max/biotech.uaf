@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
-import * as discussionService from '../services/discussionService'
-import type { DiscussionListFilters } from '../types/discussion'
+import * as discussionService from '../services/discussionService.js'
+import type { DiscussionListFilters } from '../types/discussion.js'
 
 function optionalQuery(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined

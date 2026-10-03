@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express'
 import path from 'path'
 import multer from 'multer'
-import { storageService, validateFile } from '../services/storage'
-import { config } from '../config/env'
+import { storageService, validateFile } from '../services/storage/index.js'
+import { config } from '../config/env.js'
 
 const upload = multer({
   storage: multer.memoryStorage(),

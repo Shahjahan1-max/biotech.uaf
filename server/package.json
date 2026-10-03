@@ -4,12 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch index.ts",
-    "build": "tsc",
+    "dev": "node scripts/sync-prisma-client.mjs && tsx watch index.ts",
+    "build": "node scripts/sync-prisma-client.mjs && tsc",
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@prisma/client": "^6.16.2",
+    "@prisma/client": "6.19.3",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -26,7 +26,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.3.0",
     "@types/node": "^24.13.3",
-    "prisma": "^6.16.2",
+    "prisma": "6.19.3",
     "tsx": "^4.20.3",
     "typescript": "~6.0.2"
   }

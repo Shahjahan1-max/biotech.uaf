@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import * as subjectController from '../controllers/subjectController'
-import { requireAuth, requireRole } from '../middleware/auth'
+import * as subjectController from '../controllers/subjectController.js'
+import { requireAuth, requireRole } from '../middleware/auth.js'
 
 export const subjectRoutes = Router()
 

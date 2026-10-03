@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
-import * as assignmentService from '../services/assignmentService'
-import { handleServiceError } from '../utils/handleServiceError'
+import * as assignmentService from '../services/assignmentService.js'
+import { handleServiceError } from '../utils/handleServiceError.js'
 
 const MAX_TITLE_LENGTH = 200
 const MAX_DESCRIPTION_LENGTH = 5000

@@ -1,4 +1,4 @@
-import type { Subject } from './subject'
+import type { Subject } from './subject.js'
 
 export const DAY_OF_WEEK = [
   'MONDAY',

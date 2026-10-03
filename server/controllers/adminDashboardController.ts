@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import * as adminDashboardService from '../services/adminDashboardService'
+import * as adminDashboardService from '../services/adminDashboardService.js'
 
 export async function getDashboard(_req: Request, res: Response) {
   try {

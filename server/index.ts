@@ -1,9 +1,9 @@
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
-import { config } from './config/env'
-import { errorHandler } from './middleware/errorHandler'
-import { routes } from './routes'
+import { config } from './config/env.js'
+import { errorHandler } from './middleware/errorHandler.js'
+import { routes } from './routes/index.js'
 
 const app = express()
 
@@ -18,6 +18,13 @@ app.use('/api', routes)
 
 app.use(errorHandler)
 
-app.listen(config.port, () => {
+const host = config.nodeEnv === 'production' || process.env.RENDER ? '0.0.0.0' : undefined
+const onListening = () => {
   console.log(`Server running on port ${config.port}`)
-})
+}
+
+if (host) {
+  app.listen(config.port, host, onListening)
+} else {
+  app.listen(config.port, onListening)
+}

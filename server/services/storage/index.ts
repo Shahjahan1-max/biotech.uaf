@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs'
 import path from 'path'
 import crypto from 'crypto'
-import { config } from '../../config/env'
+import { config } from '../../config/env.js'
 
 export interface StoredFile {
   id: string

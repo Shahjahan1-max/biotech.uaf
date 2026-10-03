@@ -7,7 +7,7 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
   deleteNotification,
-} from '../services/notificationService'
+} from '../services/notificationService.js'
 
 const MAX_LIMIT = 100
 

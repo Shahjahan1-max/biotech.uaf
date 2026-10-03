@@ -1,11 +1,11 @@
-import { prisma } from '../utils/prisma'
+import { prisma } from '../utils/prisma.js'
 import type {
   DiscussionListFilters,
   DiscussionPost,
   DiscussionReply,
   PaginatedDiscussions,
-} from '../types/discussion'
-import { createNotification, excerpt, safeNotify } from './notificationService'
+} from '../types/discussion.js'
+import { createNotification, excerpt, safeNotify } from './notificationService.js'
 
 
 const TITLE_MIN_LENGTH = 5

@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express'
-import { verifyToken } from '../services/authService'
-import { config } from '../config/env'
+import { verifyToken } from '../services/authService.js'
+import { config } from '../config/env.js'
 
 declare global {
   namespace Express {

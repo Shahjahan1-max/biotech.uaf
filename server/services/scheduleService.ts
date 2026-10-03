@@ -1,8 +1,8 @@
 import type { DayOfWeek as PrismaDayOfWeek } from '@prisma/client'
-import { prisma } from '../utils/prisma'
-import type { ClassSchedule, DayOfWeek, ScheduleInput } from '../types/schedule'
-import { DAY_OF_WEEK } from '../types/schedule'
-import { notifyStudents, safeNotify } from './notificationService'
+import { prisma } from '../utils/prisma.js'
+import type { ClassSchedule, DayOfWeek, ScheduleInput } from '../types/schedule.js'
+import { DAY_OF_WEEK } from '../types/schedule.js'
+import { notifyStudents, safeNotify } from './notificationService.js'
 
 
 const TIME_PATTERN = /^([01][0-9]|2[0-3]):[0-5][0-9]$/

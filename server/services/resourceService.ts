@@ -1,7 +1,7 @@
 import type { ResourceType } from '@prisma/client'
-import { prisma } from '../utils/prisma'
-import type { ResourceInput, StudyResource } from '../types/resource'
-import { excerpt, notifyStudents, safeNotify } from './notificationService'
+import { prisma } from '../utils/prisma.js'
+import type { ResourceInput, StudyResource } from '../types/resource.js'
+import { excerpt, notifyStudents, safeNotify } from './notificationService.js'
 
 
 const VALID_TYPES: ResourceType[] = ['NOTE', 'STUDY_GUIDE', 'PRESENTATION', 'REFERENCE', 'OTHER']

@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import * as adminStudentService from '../services/adminStudentService'
+import * as adminStudentService from '../services/adminStudentService.js'
 
 function optionalQuery(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined

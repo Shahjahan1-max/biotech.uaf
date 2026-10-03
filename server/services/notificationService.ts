@@ -1,5 +1,5 @@
 import type { NotificationType as PrismaNotificationType } from '@prisma/client'
-import { prisma } from '../utils/prisma'
+import { prisma } from '../utils/prisma.js'
 
 
 const DEFAULT_LIMIT = 20

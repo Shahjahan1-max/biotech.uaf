@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express'
-import * as resourceService from '../services/resourceService'
-import type { ResourceInput } from '../types/resource'
-import { handleServiceError } from '../utils/handleServiceError'
+import * as resourceService from '../services/resourceService.js'
+import type { ResourceInput } from '../types/resource.js'
+import { handleServiceError } from '../utils/handleServiceError.js'
 
 export async function getResources(req: Request, res: Response) {
   try {

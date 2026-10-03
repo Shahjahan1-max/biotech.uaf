@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
-import * as scheduleService from '../services/scheduleService'
-import type { DayOfWeek, ScheduleInput } from '../types/schedule'
+import * as scheduleService from '../services/scheduleService.js'
+import type { DayOfWeek, ScheduleInput } from '../types/schedule.js'
 
 function optionalQuery(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined

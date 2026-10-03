@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import * as adminDashboardController from '../controllers/adminDashboardController'
-import * as adminStudentController from '../controllers/adminStudentController'
-import { requireAuth, requireRole } from '../middleware/auth'
+import * as adminDashboardController from '../controllers/adminDashboardController.js'
+import * as adminStudentController from '../controllers/adminStudentController.js'
+import { requireAuth, requireRole } from '../middleware/auth.js'
 
 export const adminRoutes = Router()
 

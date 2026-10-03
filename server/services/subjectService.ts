@@ -1,5 +1,5 @@
-import { prisma } from '../utils/prisma'
-import type { Subject, SubjectInput } from '../types/subject'
+import { prisma } from '../utils/prisma.js'
+import type { Subject, SubjectInput } from '../types/subject.js'
 
 
 export async function getAllSubjects(): Promise<Subject[]> {

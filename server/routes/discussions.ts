@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import * as discussionController from '../controllers/discussionController'
-import { requireAuth } from '../middleware/auth'
+import * as discussionController from '../controllers/discussionController.js'
+import { requireAuth } from '../middleware/auth.js'
 
 export const discussionRoutes = Router()
 

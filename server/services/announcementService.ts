@@ -1,15 +1,15 @@
 import type { AnnouncementPriority, AnnouncementType } from '@prisma/client'
-import { prisma } from '../utils/prisma'
+import { prisma } from '../utils/prisma.js'
 import type {
   Announcement,
   AnnouncementListFilters,
   PaginatedAnnouncements,
-} from '../types/announcement'
+} from '../types/announcement.js'
 import {
   ANNOUNCEMENT_PRIORITIES,
   ANNOUNCEMENT_TYPES,
-} from '../types/announcement'
-import { excerpt, notifyStudents, safeNotify } from './notificationService'
+} from '../types/announcement.js'
+import { excerpt, notifyStudents, safeNotify } from './notificationService.js'
 
 
 const TITLE_MIN_LENGTH = 5
