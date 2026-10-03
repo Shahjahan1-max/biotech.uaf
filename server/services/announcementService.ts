@@ -1,5 +1,5 @@
-import type { AnnouncementPriority, AnnouncementType } from '@prisma/client'
-import { prisma } from '../utils/prisma.js'
+import type { AnnouncementPriority, AnnouncementType } from '../../db/schema.js'
+import { records as portal } from '../../db/repository.js'
 import type {
   Announcement,
   AnnouncementListFilters,
@@ -33,10 +33,10 @@ export class AnnouncementNotFoundError extends Error {
   }
 }
 
-function hasControlCharacters(value: string): boolean {
+function hasControlCharacters(value: string, allowLineBreaks: boolean): boolean {
   for (let index = 0; index < value.length; index += 1) {
     const code = value.charCodeAt(index)
-    if (code < 32 || code === 127) return true
+    if ((code < 32 && !(allowLineBreaks && [9, 10, 13].includes(code))) || code === 127) return true
   }
   return false
 }
@@ -53,7 +53,7 @@ function cleanText(value: unknown, field: string, minLength: number, maxLength: 
   if (cleaned.length > maxLength) {
     throw new AnnouncementValidationError(`${field} must be ${maxLength} characters or fewer`)
   }
-  if (hasControlCharacters(cleaned)) {
+  if (hasControlCharacters(cleaned, field === 'Content')) {
     throw new AnnouncementValidationError(`${field} contains invalid characters`)
   }
 
@@ -127,7 +127,7 @@ function validateInput(body: unknown): {
 }
 
 async function assertSubjectExists(subjectId: string): Promise<void> {
-  const subject = await prisma.subject.findUnique({ where: { id: subjectId } })
+  const subject = await portal.subject.findUnique({ where: { id: subjectId } })
   if (!subject) throw new AnnouncementValidationError('Subject not found')
 }
 
@@ -232,8 +232,8 @@ export async function getAnnouncements(
   const where = clauses.length > 0 ? { AND: clauses } : {}
 
   const [total, records] = await Promise.all([
-    prisma.announcement.count({ where }),
-    prisma.announcement.findMany({
+    portal.announcement.count({ where }),
+    portal.announcement.findMany({
       where,
       include: announcementInclude,
       orderBy: { createdAt: 'desc' },
@@ -255,7 +255,7 @@ export async function getAnnouncementById(
   id: string,
   isAdmin: boolean
 ): Promise<Announcement | null> {
-  const record = await prisma.announcement.findUnique({
+  const record = await portal.announcement.findUnique({
     where: { id },
     include: announcementInclude,
   })
@@ -271,7 +271,7 @@ export async function createAnnouncement(
   const input = validateInput(body)
   if (input.subjectId) await assertSubjectExists(input.subjectId)
 
-  const record = await prisma.announcement.create({
+  const record = await portal.announcement.create({
     data: {
       title: input.title,
       content: input.content,
@@ -302,13 +302,13 @@ export async function createAnnouncement(
 }
 
 export async function updateAnnouncement(id: string, body: unknown): Promise<Announcement> {
-  const existing = await prisma.announcement.findUnique({ where: { id } })
+  const existing = await portal.announcement.findUnique({ where: { id } })
   if (!existing) throw new AnnouncementNotFoundError()
 
   const input = validateInput(body)
   if (input.subjectId) await assertSubjectExists(input.subjectId)
 
-  const record = await prisma.announcement.update({
+  const record = await portal.announcement.update({
     where: { id },
     data: {
       title: input.title,
@@ -324,8 +324,8 @@ export async function updateAnnouncement(id: string, body: unknown): Promise<Ann
 }
 
 export async function deleteAnnouncement(id: string): Promise<void> {
-  const existing = await prisma.announcement.findUnique({ where: { id } })
+  const existing = await portal.announcement.findUnique({ where: { id } })
   if (!existing) throw new AnnouncementNotFoundError()
 
-  await prisma.announcement.delete({ where: { id } })
+  await portal.announcement.delete({ where: { id } })
 }

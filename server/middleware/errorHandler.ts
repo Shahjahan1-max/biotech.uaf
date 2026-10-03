@@ -34,6 +34,6 @@ export function errorHandler(
     return
   }
 
-  console.error(err.message)
+  console.error('Unhandled API error')
   res.status(500).json({ error: 'Internal server error' })
 }

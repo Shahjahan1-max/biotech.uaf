@@ -1,4 +1,4 @@
-import { prisma } from '../utils/prisma.js'
+import { records as portal } from '../../db/repository.js'
 import type {
   DiscussionListFilters,
   DiscussionPost,
@@ -37,10 +37,10 @@ export class DiscussionForbiddenError extends Error {
   }
 }
 
-function hasControlCharacters(value: string): boolean {
+function hasControlCharacters(value: string, allowLineBreaks: boolean): boolean {
   for (let index = 0; index < value.length; index += 1) {
     const code = value.charCodeAt(index)
-    if (code < 32 || code === 127) return true
+    if ((code < 32 && !(allowLineBreaks && [9, 10, 13].includes(code))) || code === 127) return true
   }
   return false
 }
@@ -61,7 +61,7 @@ function cleanText(value: unknown, field: string, minLength: number, maxLength: 
       `${field} must be ${maxLength} characters or fewer`
     )
   }
-  if (hasControlCharacters(cleaned)) {
+  if (hasControlCharacters(cleaned, field === 'Content')) {
     throw new DiscussionValidationError(`${field} contains invalid characters`)
   }
 
@@ -98,7 +98,7 @@ function assertOwnerOrAdmin(authorId: string, user: { id: string; role: string }
 }
 
 async function assertSubjectExists(subjectId: string): Promise<void> {
-  const subject = await prisma.subject.findUnique({ where: { id: subjectId } })
+  const subject = await portal.subject.findUnique({ where: { id: subjectId } })
   if (!subject) throw new DiscussionValidationError('Subject not found')
 }
 
@@ -186,8 +186,8 @@ export async function getPosts(filters: DiscussionListFilters = {}): Promise<Pag
   }
 
   const [total, records] = await Promise.all([
-    prisma.discussionPost.count({ where }),
-    prisma.discussionPost.findMany({
+    portal.discussionPost.count({ where }),
+    portal.discussionPost.findMany({
       where,
       include: {
         author: { select: { id: true, name: true } },
@@ -210,7 +210,7 @@ export async function getPosts(filters: DiscussionListFilters = {}): Promise<Pag
 }
 
 export async function getPostById(id: string): Promise<DiscussionPost | null> {
-  const record = await prisma.discussionPost.findUnique({
+  const record = await portal.discussionPost.findUnique({
     where: { id },
     include: {
       author: { select: { id: true, name: true } },
@@ -222,13 +222,13 @@ export async function getPostById(id: string): Promise<DiscussionPost | null> {
 }
 
 export async function getReplies(postId: string): Promise<DiscussionReply[]> {
-  const post = await prisma.discussionPost.findUnique({
+  const post = await portal.discussionPost.findUnique({
     where: { id: postId },
     select: { id: true },
   })
   if (!post) throw new DiscussionNotFoundError()
 
-  const records = await prisma.discussionReply.findMany({
+  const records = await portal.discussionReply.findMany({
     where: { postId },
     include: { author: { select: { id: true, name: true } } },
     orderBy: { createdAt: 'asc' },
@@ -243,7 +243,7 @@ export async function createPost(
   const input = validatePostInput(body)
   await assertSubjectExists(input.subjectId)
 
-  const record = await prisma.discussionPost.create({
+  const record = await portal.discussionPost.create({
     data: { ...input, authorId },
     include: {
       author: { select: { id: true, name: true } },
@@ -259,7 +259,7 @@ export async function updatePost(
   user: { id: string; role: string },
   body: unknown
 ): Promise<DiscussionPost> {
-  const existing = await prisma.discussionPost.findUnique({ where: { id } })
+  const existing = await portal.discussionPost.findUnique({ where: { id } })
   if (!existing) throw new DiscussionNotFoundError()
   assertOwnerOrAdmin(existing.authorId, user)
 
@@ -268,7 +268,7 @@ export async function updatePost(
     await assertSubjectExists(input.subjectId)
   }
 
-  const record = await prisma.discussionPost.update({
+  const record = await portal.discussionPost.update({
     where: { id },
     data: input,
     include: {
@@ -284,11 +284,11 @@ export async function deletePost(
   id: string,
   user: { id: string; role: string }
 ): Promise<void> {
-  const existing = await prisma.discussionPost.findUnique({ where: { id } })
+  const existing = await portal.discussionPost.findUnique({ where: { id } })
   if (!existing) throw new DiscussionNotFoundError()
   assertOwnerOrAdmin(existing.authorId, user)
 
-  await prisma.discussionPost.delete({ where: { id } })
+  await portal.discussionPost.delete({ where: { id } })
 }
 
 export async function createReply(
@@ -296,14 +296,14 @@ export async function createReply(
   authorId: string,
   body: unknown
 ): Promise<DiscussionReply> {
-  const post = await prisma.discussionPost.findUnique({
+  const post = await portal.discussionPost.findUnique({
     where: { id: postId },
     select: { id: true, title: true, authorId: true },
   })
   if (!post) throw new DiscussionNotFoundError()
 
   const input = validateReplyInput(body)
-  const record = await prisma.discussionReply.create({
+  const record = await portal.discussionReply.create({
     data: { ...input, authorId, postId },
     include: { author: { select: { id: true, name: true } } },
   })
@@ -329,12 +329,12 @@ export async function updateReply(
   user: { id: string; role: string },
   body: unknown
 ): Promise<DiscussionReply> {
-  const existing = await prisma.discussionReply.findUnique({ where: { id: replyId } })
+  const existing = await portal.discussionReply.findUnique({ where: { id: replyId } })
   if (!existing) throw new DiscussionNotFoundError()
   assertOwnerOrAdmin(existing.authorId, user)
 
   const input = validateReplyInput(body)
-  const record = await prisma.discussionReply.update({
+  const record = await portal.discussionReply.update({
     where: { id: replyId },
     data: input,
     include: { author: { select: { id: true, name: true } } },
@@ -346,9 +346,9 @@ export async function deleteReply(
   replyId: string,
   user: { id: string; role: string }
 ): Promise<void> {
-  const existing = await prisma.discussionReply.findUnique({ where: { id: replyId } })
+  const existing = await portal.discussionReply.findUnique({ where: { id: replyId } })
   if (!existing) throw new DiscussionNotFoundError()
   assertOwnerOrAdmin(existing.authorId, user)
 
-  await prisma.discussionReply.delete({ where: { id: replyId } })
+  await portal.discussionReply.delete({ where: { id: replyId } })
 }

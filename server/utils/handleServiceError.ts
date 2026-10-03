@@ -1,29 +1,25 @@
 import type { Response } from 'express'
-import { Prisma } from '@prisma/client'
+import { DrizzleQueryError } from 'drizzle-orm'
+import { RecordNotFoundError } from '../../db/repository.js'
 
 const NOT_FOUND_MESSAGES = ['Subject not found', 'Resource not found', 'Assignment not found']
 
 export function handleServiceError(res: Response, error: unknown, fallback: string): void {
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    if (error.code === 'P2025') {
+  if (error instanceof RecordNotFoundError) {
       res.status(404).json({ error: 'Resource not found' })
       return
-    }
-    if (error.code === 'P2002') {
+  }
+  if (error instanceof DrizzleQueryError) {
+    const code = (error.cause as { code?: string } | undefined)?.code
+    if (code === '23505') {
       res.status(409).json({ error: 'Resource already exists' })
       return
     }
-    if (error.code === 'P2003') {
+    if (code === '23503') {
       res.status(400).json({ error: 'A related record does not exist' })
       return
     }
-    console.error(error.message)
     res.status(500).json({ error: fallback })
-    return
-  }
-
-  if (error instanceof Prisma.PrismaClientValidationError) {
-    res.status(400).json({ error: 'Invalid request data' })
     return
   }
 
@@ -40,6 +36,5 @@ export function handleServiceError(res: Response, error: unknown, fallback: stri
     return
   }
 
-  console.error(error instanceof Error ? error.message : 'Unknown server error')
   res.status(500).json({ error: fallback })
 }

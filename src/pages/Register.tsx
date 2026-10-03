@@ -30,8 +30,8 @@ export function Register() {
     setIsSubmitting(true)
 
     try {
-      await register({ name, email, password })
-      navigate('/')
+      const signedIn = await register({ name, email, password })
+      navigate(signedIn ? '/' : '/login?registered=1')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
     } finally {

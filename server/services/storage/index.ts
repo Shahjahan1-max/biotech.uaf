@@ -1,4 +1,4 @@
-import { promises as fs } from 'fs'
+import { getStore } from '@netlify/blobs'
 import path from 'path'
 import crypto from 'crypto'
 import { config } from '../../config/env.js'
@@ -14,7 +14,7 @@ export interface StoredFile {
 
 export interface StorageService {
   save(file: Express.Multer.File): Promise<StoredFile>
-  get(storedFileName: string): Promise<{ path: string; mimeType: string } | null>
+  get(storedFileName: string): Promise<{ data: ArrayBuffer; mimeType: string } | null>
   delete(storedFileName: string): Promise<boolean>
   getUrl(storedFileName: string): string
 }
@@ -39,27 +39,18 @@ function isValidStoredName(storedFileName: string): boolean {
   return STORED_NAME_PATTERN.test(storedFileName)
 }
 
-function resolveUploadPath(uploadDir: string, storedFileName: string): string | null {
-  if (!isValidStoredName(storedFileName)) return null
-
-  const baseDir = path.resolve(uploadDir)
-  const target = path.resolve(baseDir, path.basename(storedFileName))
-
-  if (!target.startsWith(baseDir + path.sep)) return null
-  return target
-}
-
 export function validateFile(file: Express.Multer.File): string | null {
   if (!file) return 'No file provided'
 
   const ext = path.extname(file.originalname).toLowerCase()
   const allowedExts = Object.values(ALLOWED_MIME_TYPES)
 
-  if (!allowedExts.includes(ext)) {
+  if (!allowedExts.includes(ext) && ext !== '.jpeg') {
     return 'Unsupported file type'
   }
 
-  if (!ALLOWED_MIME_TYPES[file.mimetype]) {
+  const expectedExt = ALLOWED_MIME_TYPES[file.mimetype]
+  if (!expectedExt || (ext !== expectedExt && !(expectedExt === '.jpg' && ext === '.jpeg'))) {
     return 'Unsupported MIME type'
   }
 
@@ -70,32 +61,13 @@ export function validateFile(file: Express.Multer.File): string | null {
   return null
 }
 
-export class LocalStorageService implements StorageService {
-  private uploadDir: string
-  private dirReady: Promise<void>
-
-  constructor() {
-    this.uploadDir = config.uploadDir
-    this.dirReady = this.ensureUploadDir()
-  }
-
-  private async ensureUploadDir(): Promise<void> {
-    try {
-      await fs.access(this.uploadDir)
-    } catch {
-      await fs.mkdir(this.uploadDir, { recursive: true })
-    }
-  }
-
+export class BlobStorageService implements StorageService {
   async save(file: Express.Multer.File): Promise<StoredFile> {
-    await this.dirReady
-
     const id = crypto.randomUUID()
     const ext = path.extname(file.originalname).toLowerCase()
     const storedFileName = `${id}${ext}`
-    const filePath = path.join(this.uploadDir, storedFileName)
-
-    await fs.writeFile(filePath, file.buffer)
+    const filePath = this.getUrl(storedFileName)
+    await getStore('portal-uploads').set(storedFileName, new Uint8Array(file.buffer).buffer)
 
     return {
       id,
@@ -107,34 +79,21 @@ export class LocalStorageService implements StorageService {
     }
   }
 
-  async get(storedFileName: string): Promise<{ path: string; mimeType: string } | null> {
-    const filePath = resolveUploadPath(this.uploadDir, storedFileName)
-    if (!filePath) return null
-
-    try {
-      const stats = await fs.stat(filePath)
-      if (!stats.isFile()) return null
-
-      const ext = path.extname(filePath).toLowerCase()
-      const mimeType =
-        Object.entries(ALLOWED_MIME_TYPES).find(([, e]) => e === ext)?.[0] ||
-        'application/octet-stream'
-      return { path: filePath, mimeType }
-    } catch {
-      return null
-    }
+  async get(storedFileName: string): Promise<{ data: ArrayBuffer; mimeType: string } | null> {
+    if (!isValidStoredName(storedFileName)) return null
+    const data = await getStore('portal-uploads').get(storedFileName, { type: 'arrayBuffer' })
+    if (!data) return null
+    const ext = path.extname(storedFileName).toLowerCase()
+    const mimeType = Object.entries(ALLOWED_MIME_TYPES).find(([, extension]) => extension === ext || (ext === '.jpeg' && extension === '.jpg'))?.[0] || 'application/octet-stream'
+    return { data, mimeType }
   }
 
   async delete(storedFileName: string): Promise<boolean> {
-    const filePath = resolveUploadPath(this.uploadDir, storedFileName)
-    if (!filePath) return false
-
-    try {
-      await fs.unlink(filePath)
-      return true
-    } catch {
-      return false
-    }
+    if (!isValidStoredName(storedFileName)) return false
+    const store = getStore('portal-uploads')
+    if (!(await store.getMetadata(storedFileName))) return false
+    await store.delete(storedFileName)
+    return true
   }
 
   getUrl(storedFileName: string): string {
@@ -142,4 +101,4 @@ export class LocalStorageService implements StorageService {
   }
 }
 
-export const storageService = new LocalStorageService()
+export const storageService = new BlobStorageService()

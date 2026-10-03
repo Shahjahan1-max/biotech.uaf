@@ -1,3 +1,4 @@
+import { useRequestStatus } from '../hooks/useRequestStatus'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { SectionHeader } from '../components/SectionHeader'
@@ -28,8 +29,6 @@ const EMPTY_PAGE: PaginatedDiscussions = {
 export function Discussions() {
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [result, setResult] = useState<PaginatedDiscussions>(EMPTY_PAGE)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [searchParams] = useSearchParams()
@@ -47,14 +46,14 @@ export function Discussions() {
     setPage(1)
   }
 
+  const { isLoading, error, setError, setIsLoading } = useRequestStatus(JSON.stringify([selectedSubject, search, page, refreshKey]))
+
   useEffect(() => {
     getSubjects().then(setSubjects).catch(() => {})
   }, [])
 
   useEffect(() => {
     let active = true
-    setIsLoading(true)
-    setError('')
 
     listDiscussions({
       subjectId: selectedSubject || undefined,
@@ -63,7 +62,10 @@ export function Discussions() {
       limit: 20,
     })
       .then((data) => {
-        if (active) setResult(data)
+        if (active) {
+          setResult(data)
+          setError('')
+        }
       })
       .catch((err: unknown) => {
         if (active) {
@@ -77,7 +79,7 @@ export function Discussions() {
     return () => {
       active = false
     }
-  }, [selectedSubject, search, page, refreshKey])
+  }, [selectedSubject, search, page, refreshKey, setError, setIsLoading])
 
   function refresh() {
     setRefreshKey((key) => key + 1)

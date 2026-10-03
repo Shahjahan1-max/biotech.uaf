@@ -1,11 +1,14 @@
 import type { Subject } from '../types/subject'
 import { SubjectCard } from './SubjectCard'
+import { Button } from './Button'
 
 interface SubjectGridProps {
   subjects: Subject[]
+  onEdit?: (subject: Subject) => void
+  onDelete?: (subject: Subject) => void
 }
 
-export function SubjectGrid({ subjects }: SubjectGridProps) {
+export function SubjectGrid({ subjects, onEdit, onDelete }: SubjectGridProps) {
   if (subjects.length === 0) {
     return (
       <div className="text-center py-16">
@@ -25,7 +28,15 @@ export function SubjectGrid({ subjects }: SubjectGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {subjects.map((subject) => (
-        <SubjectCard key={subject.id} subject={subject} />
+        <div key={subject.id}>
+          <SubjectCard subject={subject} />
+          {(onEdit || onDelete) && (
+            <div className="mt-2 flex gap-2">
+              {onEdit && <Button size="sm" variant="outline" onClick={() => onEdit(subject)}>Edit</Button>}
+              {onDelete && <Button size="sm" variant="ghost" onClick={() => onDelete(subject)}>Delete</Button>}
+            </div>
+          )}
+        </div>
       ))}
     </div>
   )

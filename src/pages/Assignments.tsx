@@ -1,3 +1,4 @@
+import { useRequestStatus } from '../hooks/useRequestStatus'
 import { useEffect, useState } from 'react'
 import { Spinner } from '../components/Spinner'
 import { SectionHeader } from '../components/SectionHeader'
@@ -23,13 +24,13 @@ export function Assignments() {
 
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [subjects, setSubjects] = useState<Subject[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
   const [selectedSubject, setSelectedSubject] = useState('')
   const [selectedStatus, setSelectedStatus] = useState<AssignmentStatus | ''>('')
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Assignment | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
+
+  const { isLoading, error, setError, setIsLoading } = useRequestStatus(JSON.stringify([selectedSubject, refreshKey]))
 
   useEffect(() => {
     getSubjects().then(setSubjects).catch(() => {})
@@ -37,12 +38,13 @@ export function Assignments() {
 
   useEffect(() => {
     let active = true
-    setIsLoading(true)
-    setError('')
 
     listAssignments(selectedSubject || undefined)
       .then((data) => {
-        if (active) setAssignments(data)
+        if (active) {
+          setAssignments(data)
+          setError('')
+        }
       })
       .catch((err: unknown) => {
         if (active) {
@@ -56,7 +58,7 @@ export function Assignments() {
     return () => {
       active = false
     }
-  }, [selectedSubject, refreshKey])
+  }, [selectedSubject, refreshKey, setError, setIsLoading])
 
   function refresh() {
     setRefreshKey((key) => key + 1)
