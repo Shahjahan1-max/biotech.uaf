@@ -1,5 +1,5 @@
-import type { DayOfWeek as PrismaDayOfWeek } from '@prisma/client'
-import { prisma } from '../utils/prisma.js'
+import type { DayOfWeek as PrismaDayOfWeek } from '../../db/schema.js'
+import { records as portal } from '../../db/repository.js'
 import type { ClassSchedule, DayOfWeek, ScheduleInput } from '../types/schedule.js'
 import { DAY_OF_WEEK } from '../types/schedule.js'
 import { notifyStudents, safeNotify } from './notificationService.js'
@@ -91,7 +91,7 @@ function validateInput(input: ScheduleInput): ScheduleInput {
 }
 
 async function assertSubjectExists(subjectId: string): Promise<void> {
-  const subject = await prisma.subject.findUnique({ where: { id: subjectId } })
+  const subject = await portal.subject.findUnique({ where: { id: subjectId } })
   if (!subject) throw new ScheduleValidationError('Subject not found')
 }
 
@@ -101,7 +101,7 @@ async function findConflict(
   endTime: string,
   excludeId?: string
 ): Promise<ClassSchedule | null> {
-  const candidates = await prisma.classSchedule.findMany({
+  const candidates = await portal.classSchedule.findMany({
     where: { dayOfWeek, ...(excludeId ? { id: { not: excludeId } } : {}) },
     include: { subject: true },
   })
@@ -171,7 +171,7 @@ export async function getSchedules(filters: {
 
   if (filters.subjectId) where.subjectId = filters.subjectId
 
-  const schedules = await prisma.classSchedule.findMany({
+  const schedules = await portal.classSchedule.findMany({
     where,
     include: { subject: true },
   })
@@ -180,7 +180,7 @@ export async function getSchedules(filters: {
 }
 
 export async function getScheduleById(id: string): Promise<ClassSchedule | null> {
-  const schedule = await prisma.classSchedule.findUnique({
+  const schedule = await portal.classSchedule.findUnique({
     where: { id },
     include: { subject: true },
   })
@@ -199,7 +199,7 @@ export async function createSchedule(input: ScheduleInput): Promise<ClassSchedul
     )
   }
 
-  const schedule = await prisma.classSchedule.create({
+  const schedule = await portal.classSchedule.create({
     data: validated,
     include: { subject: true },
   })
@@ -219,7 +219,7 @@ export async function createSchedule(input: ScheduleInput): Promise<ClassSchedul
 }
 
 export async function updateSchedule(id: string, input: ScheduleInput): Promise<ClassSchedule> {
-  const existing = await prisma.classSchedule.findUnique({ where: { id } })
+  const existing = await portal.classSchedule.findUnique({ where: { id } })
   if (!existing) throw new ScheduleNotFoundError()
 
   const validated = validateInput(input)
@@ -238,7 +238,7 @@ export async function updateSchedule(id: string, input: ScheduleInput): Promise<
     )
   }
 
-  const schedule = await prisma.classSchedule.update({
+  const schedule = await portal.classSchedule.update({
     where: { id },
     data: validated,
     include: { subject: true },
@@ -259,8 +259,8 @@ export async function updateSchedule(id: string, input: ScheduleInput): Promise<
 }
 
 export async function deleteSchedule(id: string): Promise<void> {
-  const existing = await prisma.classSchedule.findUnique({ where: { id } })
+  const existing = await portal.classSchedule.findUnique({ where: { id } })
   if (!existing) throw new ScheduleNotFoundError()
 
-  await prisma.classSchedule.delete({ where: { id } })
+  await portal.classSchedule.delete({ where: { id } })
 }

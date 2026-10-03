@@ -1,3 +1,4 @@
+import { useRequestStatus } from '../hooks/useRequestStatus'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { SectionHeader } from '../components/SectionHeader'
@@ -60,8 +61,6 @@ export function Announcements() {
   const [searchParams] = useSearchParams()
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [result, setResult] = useState<PaginatedAnnouncements>(EMPTY_PAGE)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
 
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
@@ -84,14 +83,14 @@ export function Announcements() {
     setPage(1)
   }
 
+  const { isLoading, error, setError, setIsLoading } = useRequestStatus(JSON.stringify([selectedSubject, selectedType, selectedPriority, search, includeExpired, isAdmin, page, refreshKey]))
+
   useEffect(() => {
     getSubjects().then(setSubjects).catch(() => {})
   }, [])
 
   useEffect(() => {
     let active = true
-    setIsLoading(true)
-    setError('')
 
     listAnnouncements({
       subjectId: selectedSubject || undefined,
@@ -103,7 +102,10 @@ export function Announcements() {
       limit: 20,
     })
       .then((data) => {
-        if (active) setResult(data)
+        if (active) {
+          setResult(data)
+          setError('')
+        }
       })
       .catch((err: unknown) => {
         if (active) {
@@ -117,7 +119,7 @@ export function Announcements() {
     return () => {
       active = false
     }
-  }, [selectedSubject, selectedType, selectedPriority, search, includeExpired, isAdmin, page, refreshKey])
+  }, [selectedSubject, selectedType, selectedPriority, search, includeExpired, isAdmin, page, refreshKey, setError, setIsLoading])
 
   function refresh() {
     setRefreshKey((key) => key + 1)

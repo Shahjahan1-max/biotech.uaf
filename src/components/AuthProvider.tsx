@@ -8,10 +8,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    authService.getCurrentUser()
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setIsLoading(false))
+    let active = true
+    authService.restoreSession()
+      .then((user) => { if (active) setUser(user) })
+      .catch(() => { if (active) setUser(null) })
+      .finally(() => { if (active) setIsLoading(false) })
+    return () => { active = false }
   }, [])
 
   async function login(credentials: LoginCredentials) {
@@ -22,6 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function register(data: RegisterData) {
     const user = await authService.register(data)
     setUser(user)
+    return !!user
   }
 
   async function logout() {

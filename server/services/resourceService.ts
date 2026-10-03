@@ -1,5 +1,5 @@
-import type { ResourceType } from '@prisma/client'
-import { prisma } from '../utils/prisma.js'
+import type { ResourceType } from '../../db/schema.js'
+import { records as portal } from '../../db/repository.js'
 import type { ResourceInput, StudyResource } from '../types/resource.js'
 import { excerpt, notifyStudents, safeNotify } from './notificationService.js'
 
@@ -39,15 +39,23 @@ function validateInput(input: ResourceInput): void {
   if (typeof input.subjectId !== 'string' || input.subjectId.trim().length === 0) {
     throw new Error('Subject is required')
   }
+  for (const value of [input.fileName, input.originalFileName, input.filePath, input.fileMimeType]) {
+    if (value !== undefined && value !== null && (typeof value !== 'string' || value.length > 255)) {
+      throw new Error('Attachment information is invalid')
+    }
+  }
+  if (input.fileSize !== undefined && input.fileSize !== null && (!Number.isInteger(input.fileSize) || input.fileSize < 0 || input.fileSize > 4 * 1024 * 1024)) {
+    throw new Error('Attachment size is invalid')
+  }
 }
 
 async function assertSubjectExists(subjectId: string): Promise<void> {
-  const subject = await prisma.subject.findUnique({ where: { id: subjectId } })
+  const subject = await portal.subject.findUnique({ where: { id: subjectId } })
   if (!subject) throw new Error('Subject does not exist')
 }
 
 export async function getResources(subjectId?: string): Promise<StudyResource[]> {
-  return prisma.studyResource.findMany({
+  return portal.studyResource.findMany({
     where: subjectId ? { subjectId } : undefined,
     include: { subject: true },
     orderBy: { createdAt: 'desc' },
@@ -55,7 +63,7 @@ export async function getResources(subjectId?: string): Promise<StudyResource[]>
 }
 
 export async function getResourceById(id: string): Promise<StudyResource | null> {
-  return prisma.studyResource.findUnique({
+  return portal.studyResource.findUnique({
     where: { id },
     include: { subject: true },
   })
@@ -63,10 +71,10 @@ export async function getResourceById(id: string): Promise<StudyResource | null>
 
 export async function createResource(input: ResourceInput): Promise<StudyResource> {
   validateInput(input)
-  const subject = await prisma.subject.findUnique({ where: { id: input.subjectId } })
+  const subject = await portal.subject.findUnique({ where: { id: input.subjectId } })
   if (!subject) throw new Error('Subject does not exist')
 
-  const resource = await prisma.studyResource.create({
+  const resource = await portal.studyResource.create({
     data: input,
     include: { subject: true },
   })
@@ -86,13 +94,13 @@ export async function createResource(input: ResourceInput): Promise<StudyResourc
 }
 
 export async function updateResource(id: string, input: ResourceInput): Promise<StudyResource> {
-  const existing = await prisma.studyResource.findUnique({ where: { id } })
+  const existing = await portal.studyResource.findUnique({ where: { id } })
   if (!existing) throw new Error('Resource not found')
 
   validateInput(input)
   await assertSubjectExists(input.subjectId)
 
-  return prisma.studyResource.update({
+  return portal.studyResource.update({
     where: { id },
     data: input,
     include: { subject: true },
@@ -100,8 +108,8 @@ export async function updateResource(id: string, input: ResourceInput): Promise<
 }
 
 export async function deleteResource(id: string): Promise<void> {
-  const existing = await prisma.studyResource.findUnique({ where: { id } })
+  const existing = await portal.studyResource.findUnique({ where: { id } })
   if (!existing) throw new Error('Resource not found')
 
-  await prisma.studyResource.delete({ where: { id } })
+  await portal.studyResource.delete({ where: { id } })
 }

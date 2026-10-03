@@ -114,7 +114,7 @@ export function FileUpload({ onFileSelect, onFileRemove, isUploading, error }: F
               {isUploading ? 'Uploading...' : 'Drop file here or click to browse'}
             </p>
             <p className="text-xs text-neutral-500 mt-1">
-              PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, TXT, PNG, JPG up to 10 MB
+              PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, TXT, PNG, JPG up to 4 MB
             </p>
           </>
         )}

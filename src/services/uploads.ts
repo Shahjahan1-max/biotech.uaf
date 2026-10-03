@@ -29,7 +29,7 @@ export function resolveUploadUrl(path: string): string {
 
 export async function fetchFileUrl(filename: string): Promise<string> {
   const response = await fetch(
-    `${API_BASE_URL}/uploads/${encodeURIComponent(filename)}`,
+    resolveUploadUrl(filename),
     { credentials: 'include' }
   )
 
@@ -39,4 +39,8 @@ export async function fetchFileUrl(filename: string): Promise<string> {
 
   const blob = await response.blob()
   return URL.createObjectURL(blob)
+}
+
+export async function deleteUpload(filename: string): Promise<void> {
+  await apiFetch(`/uploads/${encodeURIComponent(filename)}`, { method: 'DELETE' })
 }

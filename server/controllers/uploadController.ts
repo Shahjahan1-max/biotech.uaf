@@ -53,16 +53,8 @@ export async function getFile(req: Request, res: Response) {
     res.setHeader('Content-Type', file.mimeType)
     res.setHeader('Content-Disposition', `inline; filename="${safeName}"`)
 
-    const { createReadStream } = await import('fs')
-    const stream = createReadStream(file.path)
-    stream.on('error', () => {
-      if (res.headersSent) {
-        res.destroy()
-      } else {
-        res.status(500).json({ error: 'Failed to retrieve file' })
-      }
-    })
-    stream.pipe(res)
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    res.send(Buffer.from(file.data))
   } catch {
     if (!res.headersSent) {
       res.status(500).json({ error: 'Failed to retrieve file' })
