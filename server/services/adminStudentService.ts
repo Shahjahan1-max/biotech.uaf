@@ -1,4 +1,4 @@
-import { records as portal } from '../../db/repository.js'
+import { prisma } from '../utils/prisma.js'
 
 
 const SEARCH_MAX_LENGTH = 200
@@ -47,7 +47,7 @@ export async function getStudents(
     throw new AdminValidationError(`Limit must be between 1 and ${MAX_LIMIT}`)
   }
 
-  const clauses: Record<string, unknown>[] = [{ role: { name: 'STUDENT' } }]
+  const clauses: Record<string, unknown>[] = []
 
   if (filters.search) {
     const search = filters.search.trim()
@@ -66,8 +66,8 @@ export async function getStudents(
   const where = clauses.length > 0 ? { AND: clauses } : {}
 
   const [total, records] = await Promise.all([
-    portal.user.count({ where }),
-    portal.user.findMany({
+    prisma.user.count({ where }),
+    prisma.user.findMany({
       where,
       select: {
         id: true,

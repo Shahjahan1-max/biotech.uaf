@@ -38,18 +38,13 @@ export async function createResource(req: Request, res: Response) {
       res.status(400).json({ error: 'Invalid request body' })
       return
     }
-    const { title, description, resourceType, url, subjectId, fileName, originalFileName, filePath, fileMimeType, fileSize } = input
+    const { title, description, resourceType, url, subjectId } = input
     const resource = await resourceService.createResource({
       title,
       description,
       resourceType,
       url,
       subjectId,
-      fileName,
-      originalFileName,
-      filePath,
-      fileMimeType,
-      fileSize,
     } as ResourceInput)
     res.status(201).json({ resource })
   } catch (error) {
@@ -64,18 +59,13 @@ export async function updateResource(req: Request, res: Response) {
       res.status(400).json({ error: 'Invalid request body' })
       return
     }
-    const { title, description, resourceType, url, subjectId, fileName, originalFileName, filePath, fileMimeType, fileSize } = input
+    const { title, description, resourceType, url, subjectId } = input
     const resource = await resourceService.updateResource(req.params.id, {
       title,
       description,
       resourceType,
       url,
       subjectId,
-      fileName,
-      originalFileName,
-      filePath,
-      fileMimeType,
-      fileSize,
     } as ResourceInput)
     res.json({ resource })
   } catch (error) {

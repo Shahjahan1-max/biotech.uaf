@@ -1,4 +1,3 @@
-import { useRequestStatus } from '../hooks/useRequestStatus'
 import { useEffect, useState } from 'react'
 import { Spinner } from '../components/Spinner'
 import { SectionHeader } from '../components/SectionHeader'
@@ -32,13 +31,13 @@ export function Timetable() {
 
   const [schedules, setSchedules] = useState<ClassSchedule[]>([])
   const [subjects, setSubjects] = useState<Subject[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
   const [selectedDay, setSelectedDay] = useState<DayOfWeek | ''>('')
   const [selectedSubjectId, setSelectedSubjectId] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<ClassSchedule | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
-
-  const { isLoading, error, setError, setIsLoading } = useRequestStatus(JSON.stringify([selectedDay, selectedSubjectId, refreshKey]))
 
   useEffect(() => {
     getSubjects().then(setSubjects).catch(() => {})
@@ -46,16 +45,15 @@ export function Timetable() {
 
   useEffect(() => {
     let active = true
+    setIsLoading(true)
+    setError('')
 
     listSchedule({
       day: selectedDay || undefined,
       subjectId: selectedSubjectId || undefined,
     })
       .then((data) => {
-        if (active) {
-          setSchedules(data)
-          setError('')
-        }
+        if (active) setSchedules(data)
       })
       .catch((err: unknown) => {
         if (active) setError(err instanceof Error ? err.message : 'Unable to load timetable.')
@@ -67,7 +65,7 @@ export function Timetable() {
     return () => {
       active = false
     }
-  }, [selectedDay, selectedSubjectId, refreshKey, setError, setIsLoading])
+  }, [selectedDay, selectedSubjectId, refreshKey])
 
   function refresh() {
     setRefreshKey((key) => key + 1)

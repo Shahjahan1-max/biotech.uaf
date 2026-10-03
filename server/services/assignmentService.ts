@@ -1,4 +1,4 @@
-import { records as portal } from '../../db/repository.js'
+import { prisma } from '../utils/prisma.js'
 import type { Assignment, AssignmentInput } from '../types/assignment.js'
 import { excerpt, notifyStudents, safeNotify } from './notificationService.js'
 
@@ -35,7 +35,7 @@ function withComputedFields(assignment: {
 
 export async function getAssignments(subjectId?: string): Promise<Assignment[]> {
   const where = subjectId ? { subjectId } : {}
-  const assignments = await portal.assignment.findMany({
+  const assignments = await prisma.assignment.findMany({
     where,
     include: { subject: true },
     orderBy: { dueDate: 'asc' },
@@ -44,7 +44,7 @@ export async function getAssignments(subjectId?: string): Promise<Assignment[]> 
 }
 
 export async function getAssignment(id: string): Promise<Assignment | null> {
-  const assignment = await portal.assignment.findUnique({
+  const assignment = await prisma.assignment.findUnique({
     where: { id },
     include: { subject: true },
   })
@@ -53,7 +53,7 @@ export async function getAssignment(id: string): Promise<Assignment | null> {
 
 export async function createAssignment(input: AssignmentInput): Promise<Assignment> {
   const dueDate = new Date(input.dueDate)
-  const assignment = await portal.assignment.create({
+  const assignment = await prisma.assignment.create({
     data: {
       title: input.title,
       description: input.description ?? null,
@@ -85,7 +85,7 @@ export async function updateAssignment(id: string, input: AssignmentInput): Prom
   const dueDate = new Date(input.dueDate)
   const keepExistingFile =
     input.fileName === undefined && input.filePath === undefined
-  const assignment = await portal.assignment.update({
+  const assignment = await prisma.assignment.update({
     where: { id },
     data: {
       title: input.title,
@@ -102,5 +102,5 @@ export async function updateAssignment(id: string, input: AssignmentInput): Prom
 }
 
 export async function deleteAssignment(id: string): Promise<void> {
-  await portal.assignment.delete({ where: { id } })
+  await prisma.assignment.delete({ where: { id } })
 }

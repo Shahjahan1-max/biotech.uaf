@@ -1,4 +1,3 @@
-import { useRequestStatus } from '../hooks/useRequestStatus'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { SectionHeader } from '../components/SectionHeader'
@@ -30,22 +29,21 @@ export function Notifications() {
   const navigate = useNavigate()
 
   const [result, setResult] = useState<NotificationListResponse>(EMPTY_PAGE)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
   const [actionError, setActionError] = useState('')
   const [unreadOnly, setUnreadOnly] = useState(false)
   const [page, setPage] = useState(1)
   const [refreshKey, setRefreshKey] = useState(0)
 
-  const { isLoading, error, setError, setIsLoading } = useRequestStatus(JSON.stringify([page, unreadOnly, refreshKey]))
-
   useEffect(() => {
     let active = true
+    setIsLoading(true)
+    setError('')
 
     listNotifications({ page, limit: 20, unreadOnly })
       .then((data) => {
-        if (active) {
-          setResult(data)
-          setError('')
-        }
+        if (active) setResult(data)
       })
       .catch((err: unknown) => {
         if (active) {
@@ -59,7 +57,7 @@ export function Notifications() {
     return () => {
       active = false
     }
-  }, [page, unreadOnly, refreshKey, setError, setIsLoading])
+  }, [page, unreadOnly, refreshKey])
 
   function refresh() {
     setRefreshKey((key) => key + 1)

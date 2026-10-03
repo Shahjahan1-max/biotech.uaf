@@ -27,6 +27,7 @@ function handleError(error: unknown, res: Response): void {
     res.status(404).json({ error: 'Notification not found' })
     return
   }
+  console.error(error instanceof Error ? error.message : 'Notification request failed')
   res.status(500).json({ error: 'Internal server error' })
 }
 

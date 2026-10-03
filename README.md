@@ -1,89 +1,177 @@
 # Biotechnology — Section A Student Portal
 
-A React and TypeScript student portal for subjects, study resources, assignments,
-weekly timetables, discussions, announcements, and personal notifications.
-Administrators can manage class content and view student accounts and dashboard statistics.
+A full-stack student portal for a Biotechnology (Section A) class: subjects, study
+resources, assignments, timetable, discussions, announcements, and notifications,
+with a role-based admin dashboard.
 
-## Architecture
+## Features
 
-The React frontend and Express API deploy together on Netlify. The API is served
-at the same-origin `/api` path by a Netlify Function, and client-side routes fall
-back to `index.html` when opened directly. No separately hosted API is required.
+**Students (role `STUDENT`)**
+- Browse subjects and per-subject details (resources, assignments, schedule, discussions, announcements)
+- Study resources with type/subject filtering
+- Assignments list and detail views with status badges (Upcoming / Due Soon / Overdue)
+- Weekly timetable
+- Discussion board: create, reply, edit, delete own content
+- Announcements with type/priority badges and expiry support
+- Notifications (mark read, mark all read, delete) with unread badge in the header
+- Profile read from the session
 
-Netlify Identity handles registration, login, email confirmation, and sessions.
-Netlify Database stores structured portal data through Drizzle ORM. Netlify Blobs
-stores uploaded documents and images so files survive function restarts and deploys.
+**Admins (role `ADMIN`)**
+- Everything students can do, plus:
+- Admin dashboard with real stats and recent activity
+- Manage students (search + pagination)
+- Create/edit/delete: subjects, resources, assignments, timetable entries, discussions, announcements
+- Upload files (PDF, DOC/DOCX, PPT/PPTX, XLS/XLSX, TXT, PNG, JPG up to 10 MB)
+- Include-expired filter for announcements
 
-## Development
+## Tech Stack
 
-Use Node.js 22.12 or newer, install dependencies once from the project root, and
-start the Netlify development server:
+| Layer     | Technology |
+|-----------|------------|
+| Frontend  | React 19, TypeScript, Vite 8, Tailwind CSS v4, react-router-dom, oxlint |
+| Backend   | Node.js, Express, TypeScript (tsx), JWT (HTTP-only cookie `biotech_session`), bcryptjs |
+| Database  | PostgreSQL + Prisma ORM (migrations in `prisma/migrations`) |
+| Dev ports | Frontend `5173`, API `3001` |
+
+## Prerequisites
+
+- Node.js 20+
+- PostgreSQL 14+ running locally (database `biotech_section_a`)
+
+## Setup
+
+1. **Install dependencies**
+
+   ```bash
+   npm install
+   cd server && npm install
+   ```
+
+2. **Configure environment**
+
+   Copy `.env.example` to `.env` (root) and fill in your own values:
+
+   ```
+   DATABASE_URL="postgresql://user:password@localhost:5432/biotech_section_a"
+   PORT=3001
+   JWT_SECRET="<generate a long random string>"
+   JWT_EXPIRES_IN="7d"
+   FRONTEND_URL="http://localhost:5173"
+   UPLOAD_DIR="uploads"
+   MAX_FILE_SIZE="10485760"
+   VITE_API_URL="http://localhost:3001/api"
+   ```
+
+   `JWT_SECRET` must be a long random value (32+ characters). The server refuses to
+   start in production with a missing, short, or default secret. Never commit `.env`.
+
+3. **Create the database and run migrations**
+
+   ```bash
+   createdb biotech_section_a        # or use your PostgreSQL tooling
+   npx prisma migrate dev
+   ```
+
+4. **Seed subjects (roles are created by migrations)**
+
+   ```bash
+   npx prisma db seed
+   ```
+
+## Running
 
 ```bash
-npm install
-npm run dev:netlify
+# terminal 1 — API (http://localhost:3001)
+npm run server
+
+# terminal 2 — frontend (http://localhost:5173)
+npm run dev
 ```
 
-Open the local site on port 8889. Netlify CLI must be installed and connected to
-this site. Running Vite alone with `npm run dev` is only suitable for frontend
-work; Identity, API functions, and Blobs require the Netlify runtime.
-
-All dependencies now live in the root package. The old separate server install
-and Prisma generation steps are no longer used.
-
-## Accounts and Administration
-
-Register through the portal and confirm the account using the email link before
-signing in, unless Identity autoconfirm is enabled in project settings. New users
-have the STUDENT role. Portal profiles are synchronized on authenticated API
-requests, and passwords are managed exclusively by Identity.
-
-To grant administration rights, assign the `admin` role in the user's
-server-managed Identity application metadata (`app_metadata.roles`) using
-Netlify Identity administration. Sign out and sign in again after changing roles.
-User-editable profile metadata does not grant administrator access.
-
-An administrator can add subjects on the Subjects page before creating resources,
-assignments, timetable entries, and discussions. No sample subjects or accounts
-are automatically inserted into the fresh database.
-
-## Database and Deploys
-
-The database schema is defined in `db/schema.ts`. Generate a migration after
-schema changes:
+Open http://localhost:5173, register an account (always created as `STUDENT`),
+then promote it to admin once:
 
 ```bash
-npx drizzle-kit generate --name describe_schema_change
+npx prisma migrate dev   # if you added a promote script, otherwise use a Prisma script/REPL
 ```
 
-Migrations are stored in `netlify/database/migrations` and applied automatically
-by Netlify during deployment. Do not manually push or apply database migrations.
-Keep the pinned Drizzle beta packages; this adapter requires that release line.
+Example one-off promote (run from project root with `node --input-type=module` or
+any Prisma script): set `user.role` to the `ADMIN` role by id, then **log out and
+back in** (the role is read from the JWT, not the database, for the session).
 
-The historical files under `prisma/` are retained for reference only. They are
-not applied to the Netlify database. Existing accounts or data from a separately
-hosted deployment are not automatically imported into Netlify Identity or the
-new portal tables.
+## Scripts
 
-The frontend always uses the same-origin API. A legacy `VITE_API_URL` setting
-is no longer used and cannot redirect requests to a missing external backend.
+| Command | Where | Purpose |
+|---------|-------|---------|
+| `npm run dev` | root | Vite dev server |
+| `npm run build` | root | `tsc -b` + production bundle |
+| `npm run lint` | root | oxlint |
+| `npm run preview` | root | Preview production build |
+| `npm run server` | root | Start API via tsx |
+| `npx prisma migrate dev` | root | Create/apply migrations |
+| `npx prisma validate` / `npx prisma generate` | root | Schema validation / client generation |
+| `npx tsc -p tsconfig.json --noEmit` | `server/` | TypeScript check for the API |
 
-## Uploads
+## API Overview
 
-Administrators can upload PDF, DOC/DOCX, PPT/PPTX, XLS/XLSX, TXT, PNG, and JPEG
-files up to 4 MB. The limit leaves room for serverless request encoding overhead.
-Study-resource uploads require a subject and create a visible resource record
-with its attachment details. File reads require authentication, and upload and
-delete operations require the ADMIN role.
+All responses are JSON; errors use `{ "error": "message" }`.
 
-## Checks
+- `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
+- `GET/POST /api/subjects`, `GET/PUT/DELETE /api/subjects/:id`
+- `GET/POST /api/resources`, `GET/PUT/DELETE /api/resources/:id`
+- `GET/POST /api/assignments`, `GET/PUT/DELETE /api/assignments/:id`
+- `GET/POST /api/schedule`, `PUT/DELETE /api/schedule/:id`
+- `GET/POST /api/discussions`, `GET/PUT/DELETE /api/discussions/:id`
+- `GET/POST /api/discussions/:id/replies`, `PUT/DELETE /api/replies/:id`
+- `GET/POST /api/announcements`, `GET/PUT/DELETE /api/announcements/:id`
+- `GET /api/notifications`, `PATCH /api/notifications/read-all`, `PATCH/DELETE /api/notifications/:id`, `GET /api/notifications/unread-count`
+- `GET /api/admin/dashboard`, `GET /api/admin/students`
+- `POST /api/uploads` (admin), `GET /api/uploads/:filename`, `DELETE /api/uploads/:filename` (admin)
+
+List endpoints paginate with `page` & `limit` (default 20, max 100) and return
+`{ items, page, limit, total, totalPages }`. Auth uses an HTTP-only cookie;
+mutations are role-checked server-side (`STUDENT` vs `ADMIN`).
+
+## Project Structure
+
+```
+├── prisma/            # schema.prisma, migrations, seed
+├── server/            # Express API (TypeScript, own node_modules)
+│   ├── config/        # env loading & validation
+│   ├── controllers/   # request handlers
+│   ├── middleware/    # auth, roles, uploads, error handler
+│   ├── routes/        # route table
+│   ├── services/      # business logic (Prisma), storage
+│   └── utils/         # shared prisma client, error mapping
+├── src/               # React frontend
+│   ├── components/    # UI system (Card, Button, Badge, SectionHeader, ...)
+│   ├── pages/         # route pages
+│   ├── services/      # typed API client
+│   ├── hooks/         # auth context hook
+│   └── types/         # shared TS types
+└── uploads/           # stored files (git-ignored)
+```
+
+## Security Notes
+
+- JWT delivered as an HTTP-only, SameSite=Lax cookie; `Secure` in production
+- Passwords hashed with bcrypt (12 rounds)
+- Strict input validation on all write endpoints (lengths, enums, URL schemes, date format)
+- File uploads: extension + MIME whitelist, 10 MB limit, random UUID stored names,
+  path-traversal-proof resolution, 413/400 responses for oversized/invalid files
+- Malformed JSON bodies return 400; unexpected errors return a generic 500 (no stack traces)
+- CORS restricted to the configured frontend origin
+- Uploads served with a sanitized `Content-Disposition` filename
+
+## Testing / Verification
 
 ```bash
-npm run typecheck
-npm run lint
-npm audit
+npm run build          # frontend type-check + production bundle
+npm run lint           # oxlint (0 errors)
+cd server && npx tsc -p tsconfig.json --noEmit
+npx prisma validate    # schema sanity
 ```
 
-The typecheck covers the frontend, Vite configuration, API, functions, and database
-code without producing build artifacts. The project does not currently contain
-a committed automated test suite. Deployment builds are handled by Netlify.
+End-to-end API flows were verified against a local server with scripted
+register/login/CRUD/notification/upload scenarios, including negative cases
+(401/403, invalid IDs, invalid enums, traversal attempts, oversized files).

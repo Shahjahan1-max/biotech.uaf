@@ -1,5 +1,5 @@
-import type { NotificationType as PrismaNotificationType } from '../../db/schema.js'
-import { records as portal } from '../../db/repository.js'
+import type { NotificationType as PrismaNotificationType } from '@prisma/client'
+import { prisma } from '../utils/prisma.js'
 
 
 const DEFAULT_LIMIT = 20
@@ -94,8 +94,8 @@ export function excerpt(text: string, maxLength = 160): string {
 export async function safeNotify(task: () => Promise<void>, context: string): Promise<void> {
   try {
     await task()
-  } catch {
-    console.error(`Notification task failed (${context})`)
+  } catch (error) {
+    console.error(`Notification task failed (${context}):`, error)
   }
 }
 
@@ -113,7 +113,7 @@ export async function createNotificationsForUsers(
   const targets = uniqueIds(userIds)
   if (targets.length === 0) return
 
-  const existing = await portal.notification.findMany({
+  const existing = await prisma.notification.findMany({
     where: {
       userId: { in: targets },
       type: input.type,
@@ -127,7 +127,7 @@ export async function createNotificationsForUsers(
   const fresh = targets.filter((id) => !alreadyNotified.has(id))
   if (fresh.length === 0) return
 
-  await portal.notification.createMany({
+  await prisma.notification.createMany({
     data: fresh.map((userId) => ({
       userId,
       type: input.type,
@@ -139,7 +139,7 @@ export async function createNotificationsForUsers(
 }
 
 export async function getStudentIds(excludeUserId?: string): Promise<string[]> {
-  const students = await portal.user.findMany({
+  const students = await prisma.user.findMany({
     where: { role: { name: 'STUDENT' } },
     select: { id: true },
   })
@@ -176,9 +176,9 @@ export async function getUserNotifications(
   }
 
   const [total, unreadCount, records] = await Promise.all([
-    portal.notification.count({ where }),
-    portal.notification.count({ where: { userId, readAt: null } }),
-    portal.notification.findMany({
+    prisma.notification.count({ where }),
+    prisma.notification.count({ where: { userId, readAt: null } }),
+    prisma.notification.findMany({
       where,
       select: notificationSelect,
       orderBy: { createdAt: 'desc' },
@@ -198,31 +198,31 @@ export async function getUserNotifications(
 }
 
 export async function getUnreadNotificationCount(userId: string): Promise<number> {
-  return portal.notification.count({ where: { userId, readAt: null } })
+  return prisma.notification.count({ where: { userId, readAt: null } })
 }
 
 export async function markNotificationAsRead(id: string, userId: string): Promise<void> {
-  const existing = await portal.notification.findUnique({ where: { id } })
+  const existing = await prisma.notification.findUnique({ where: { id } })
   if (!existing || existing.userId !== userId) throw new NotificationNotFoundError()
 
   if (existing.readAt) return
 
-  await portal.notification.update({
+  await prisma.notification.update({
     where: { id },
     data: { readAt: new Date() },
   })
 }
 
 export async function markAllNotificationsAsRead(userId: string): Promise<void> {
-  await portal.notification.updateMany({
+  await prisma.notification.updateMany({
     where: { userId, readAt: null },
     data: { readAt: new Date() },
   })
 }
 
 export async function deleteNotification(id: string, userId: string): Promise<void> {
-  const existing = await portal.notification.findUnique({ where: { id } })
+  const existing = await prisma.notification.findUnique({ where: { id } })
   if (!existing || existing.userId !== userId) throw new NotificationNotFoundError()
 
-  await portal.notification.delete({ where: { id } })
+  await prisma.notification.delete({ where: { id } })
 }

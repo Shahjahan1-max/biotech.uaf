@@ -1,4 +1,4 @@
-import { records as portal } from '../../db/repository.js'
+import { prisma } from '../utils/prisma.js'
 
 
 const RECENT_LIMIT = 5
@@ -73,15 +73,15 @@ export async function getDashboard(): Promise<AdminDashboardData> {
     recentResources,
     recentDiscussions,
   ] = await Promise.all([
-    portal.user.count({ where: { role: { name: 'STUDENT' } } }),
-    portal.subject.count(),
-    portal.assignment.count(),
-    portal.studyResource.count(),
-    portal.announcement.count({
+    prisma.user.count({ where: { role: { name: 'STUDENT' } } }),
+    prisma.subject.count(),
+    prisma.assignment.count(),
+    prisma.studyResource.count(),
+    prisma.announcement.count({
       where: { OR: [{ expiresAt: null }, { expiresAt: { gte: now } }] },
     }),
-    portal.discussionPost.count(),
-    portal.announcement.findMany({
+    prisma.discussionPost.count(),
+    prisma.announcement.findMany({
       orderBy: { createdAt: 'desc' },
       take: RECENT_LIMIT,
       select: {
@@ -93,7 +93,7 @@ export async function getDashboard(): Promise<AdminDashboardData> {
         subject: { select: subjectSelect },
       },
     }),
-    portal.assignment.findMany({
+    prisma.assignment.findMany({
       orderBy: { createdAt: 'desc' },
       take: RECENT_LIMIT,
       select: {
@@ -104,7 +104,7 @@ export async function getDashboard(): Promise<AdminDashboardData> {
         subject: { select: subjectSelect },
       },
     }),
-    portal.studyResource.findMany({
+    prisma.studyResource.findMany({
       orderBy: { createdAt: 'desc' },
       take: RECENT_LIMIT,
       select: {
@@ -115,7 +115,7 @@ export async function getDashboard(): Promise<AdminDashboardData> {
         subject: { select: subjectSelect },
       },
     }),
-    portal.discussionPost.findMany({
+    prisma.discussionPost.findMany({
       orderBy: { createdAt: 'desc' },
       take: RECENT_LIMIT,
       select: {

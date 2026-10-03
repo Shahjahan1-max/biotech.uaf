@@ -1,21 +1,21 @@
-import { records as portal } from '../../db/repository.js'
+import { prisma } from '../utils/prisma.js'
 import type { Subject, SubjectInput } from '../types/subject.js'
 
 
 export async function getAllSubjects(): Promise<Subject[]> {
-  return portal.subject.findMany({
+  return prisma.subject.findMany({
     orderBy: { createdAt: 'desc' },
   })
 }
 
 export async function getSubjectById(id: string): Promise<Subject | null> {
-  return portal.subject.findUnique({
+  return prisma.subject.findUnique({
     where: { id },
   })
 }
 
 export async function createSubject(input: SubjectInput): Promise<Subject> {
-  const existing = await portal.subject.findUnique({
+  const existing = await prisma.subject.findUnique({
     where: { code: input.code },
   })
 
@@ -23,13 +23,13 @@ export async function createSubject(input: SubjectInput): Promise<Subject> {
     throw new Error('Subject code already exists')
   }
 
-  return portal.subject.create({
+  return prisma.subject.create({
     data: input,
   })
 }
 
 export async function updateSubject(id: string, input: SubjectInput): Promise<Subject> {
-  const existing = await portal.subject.findUnique({
+  const existing = await prisma.subject.findUnique({
     where: { id },
   })
 
@@ -37,7 +37,7 @@ export async function updateSubject(id: string, input: SubjectInput): Promise<Su
     throw new Error('Subject not found')
   }
 
-  const duplicate = await portal.subject.findUnique({
+  const duplicate = await prisma.subject.findUnique({
     where: { code: input.code },
   })
 
@@ -45,14 +45,14 @@ export async function updateSubject(id: string, input: SubjectInput): Promise<Su
     throw new Error('Subject code already exists')
   }
 
-  return portal.subject.update({
+  return prisma.subject.update({
     where: { id },
     data: input,
   })
 }
 
 export async function deleteSubject(id: string): Promise<void> {
-  const existing = await portal.subject.findUnique({
+  const existing = await prisma.subject.findUnique({
     where: { id },
   })
 
@@ -60,7 +60,7 @@ export async function deleteSubject(id: string): Promise<void> {
     throw new Error('Subject not found')
   }
 
-  await portal.subject.delete({
+  await prisma.subject.delete({
     where: { id },
   })
 }

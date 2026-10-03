@@ -1,4 +1,3 @@
-import { useRequestStatus } from '../hooks/useRequestStatus'
 import { useEffect, useState } from 'react'
 import { SectionHeader } from '../components/SectionHeader'
 import { ResourceGrid } from '../components/ResourceGrid'
@@ -6,9 +5,9 @@ import { ResourceFilters } from '../components/ResourceFilters'
 import { FileUpload } from '../components/FileUpload'
 import { Button } from '../components/Button'
 import { Spinner } from '../components/Spinner'
-import { getResources, createResource } from '../services/resources'
+import { getResources } from '../services/resources'
 import { getSubjects } from '../services/subjects'
-import { uploadFile, deleteUpload } from '../services/uploads'
+import { uploadFile } from '../services/uploads'
 import { useAuth } from '../hooks/useAuth'
 import type { StudyResource, ResourceType } from '../types/resource'
 import type { Subject } from '../types/subject'
@@ -17,19 +16,16 @@ export function Resources() {
   const { user } = useAuth()
   const [resources, setResources] = useState<StudyResource[]>([])
   const [subjects, setSubjects] = useState<Subject[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
   const [selectedSubject, setSelectedSubject] = useState('')
   const [selectedType, setSelectedType] = useState<ResourceType | ''>('')
   const [showUploadForm, setShowUploadForm] = useState(false)
   const [uploadFile_, setUploadFile_] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
-  const [resourceTitle, setResourceTitle] = useState('')
-  const [resourceSubjectId, setResourceSubjectId] = useState('')
-  const [resourceType, setResourceType] = useState<ResourceType>('NOTE')
 
   const isAdmin = user?.role === 'ADMIN'
-
-  const { isLoading, error, setError, setIsLoading } = useRequestStatus(JSON.stringify([selectedSubject]))
 
   useEffect(() => {
     getSubjects().then(setSubjects).catch(() => {})
@@ -37,12 +33,11 @@ export function Resources() {
 
   useEffect(() => {
     let active = true
+    setIsLoading(true)
+    setError('')
     getResources(selectedSubject || undefined)
       .then((data) => {
-        if (active) {
-          setResources(data)
-          setError('')
-        }
+        if (active) setResources(data)
       })
       .catch(() => {
         if (active) setError('Failed to load resources')
@@ -54,7 +49,7 @@ export function Resources() {
     return () => {
       active = false
     }
-  }, [selectedSubject, setError, setIsLoading])
+  }, [selectedSubject])
 
   const visibleResources = selectedType
     ? resources.filter((resource) => resource.resourceType === selectedType)
@@ -62,39 +57,15 @@ export function Resources() {
 
   async function handleUpload() {
     if (!uploadFile_) return
-    const subjectId = resourceSubjectId || selectedSubject
-    if (!subjectId) {
-      setUploadError('Choose a subject for this resource.')
-      return
-    }
 
     setIsUploading(true)
     setUploadError('')
 
     try {
-      const uploaded = await uploadFile(uploadFile_)
-      let resource: StudyResource
-      try {
-        resource = await createResource({
-          title: resourceTitle.trim() || uploaded.originalFileName,
-          subjectId,
-          resourceType,
-          fileName: uploaded.storedFileName,
-          originalFileName: uploaded.originalFileName,
-          filePath: uploaded.storedFileName,
-          fileMimeType: uploaded.mimeType,
-          fileSize: uploaded.size,
-        })
-      } catch (error) {
-        await deleteUpload(uploaded.storedFileName).catch(() => {})
-        throw error
-      }
-      if (!selectedSubject || selectedSubject === subjectId) {
-        setResources((current) => [resource, ...current])
-      }
+      await uploadFile(uploadFile_)
       setShowUploadForm(false)
       setUploadFile_(null)
-      setResourceTitle('')
+      getResources(selectedSubject || undefined).then(setResources).catch(() => {})
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : 'Upload failed')
     } finally {
@@ -118,29 +89,6 @@ export function Resources() {
       {showUploadForm && isAdmin && (
         <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 shadow-sm">
           <h3 className="font-semibold text-neutral-900 mb-4">Upload Study Resource</h3>
-          <div className="grid gap-4 sm:grid-cols-3 mb-4">
-            <label className="text-sm font-medium text-neutral-700">
-              Title
-              <input value={resourceTitle} onChange={(event) => setResourceTitle(event.target.value)} maxLength={200} placeholder="Defaults to the filename" className="mt-1 block w-full rounded-lg border border-neutral-300 px-3 py-2" />
-            </label>
-            <label className="text-sm font-medium text-neutral-700">
-              Subject
-              <select value={resourceSubjectId || selectedSubject} onChange={(event) => setResourceSubjectId(event.target.value)} required className="mt-1 block w-full rounded-lg border border-neutral-300 px-3 py-2">
-                <option value="">Choose a subject</option>
-                {subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}
-              </select>
-            </label>
-            <label className="text-sm font-medium text-neutral-700">
-              Resource type
-              <select value={resourceType} onChange={(event) => setResourceType(event.target.value as ResourceType)} className="mt-1 block w-full rounded-lg border border-neutral-300 px-3 py-2">
-                <option value="NOTE">Notes</option>
-                <option value="STUDY_GUIDE">Study guide</option>
-                <option value="PRESENTATION">Presentation</option>
-                <option value="REFERENCE">Reference</option>
-                <option value="OTHER">Other</option>
-              </select>
-            </label>
-          </div>
           <FileUpload
             onFileSelect={setUploadFile_}
             onFileRemove={() => setUploadFile_(null)}

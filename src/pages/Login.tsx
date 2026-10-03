@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { useAuth } from '../hooks/useAuth'
 
@@ -10,7 +10,6 @@ export function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -39,11 +38,6 @@ export function Login() {
         </div>
 
         <div className="bg-white rounded-xl border border-neutral-200 p-6 shadow-sm">
-          {searchParams.get('registered') === '1' && (
-            <p role="status" className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
-              Account created. Check your email and confirm your account before signing in.
-            </p>
-          )}
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
               {error}

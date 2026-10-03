@@ -1,4 +1,3 @@
-import { useRequestStatus } from '../hooks/useRequestStatus'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Spinner } from '../components/Spinner'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -35,6 +34,8 @@ export function DiscussionDetails() {
   const [post, setPost] = useState<DiscussionPost | null>(null)
   const [replies, setReplies] = useState<DiscussionReplyType[]>([])
   const [subjects, setSubjects] = useState<Subject[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
   const [isEditing, setIsEditing] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -46,8 +47,6 @@ export function DiscussionDetails() {
     user && post && (user.id === post.authorId || user.role === 'ADMIN')
   )
 
-  const { isLoading, error, setError, setIsLoading } = useRequestStatus(JSON.stringify([id, refreshKey]))
-
   useEffect(() => {
     getSubjects().then(setSubjects).catch(() => {})
   }, [])
@@ -56,11 +55,12 @@ export function DiscussionDetails() {
     let active = true
     if (!id) return
 
+    setIsLoading(true)
+    setError('')
 
     Promise.all([getDiscussion(id), listReplies(id)])
       .then(([postData, repliesData]) => {
         if (!active) return
-        setError('')
         setPost(postData)
         setReplies(repliesData)
       })
@@ -74,7 +74,7 @@ export function DiscussionDetails() {
     return () => {
       active = false
     }
-  }, [id, refreshKey, setError, setIsLoading])
+  }, [id, refreshKey])
 
   const refresh = useCallback(() => setRefreshKey((key) => key + 1), [])
 

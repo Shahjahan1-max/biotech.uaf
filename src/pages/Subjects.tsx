@@ -1,25 +1,14 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { Spinner } from '../components/Spinner'
 import { SectionHeader } from '../components/SectionHeader'
 import { SubjectGrid } from '../components/SubjectGrid'
-import { getSubjects, saveSubject, deleteSubject } from '../services/subjects'
-import { useAuth } from '../hooks/useAuth'
-import { Button } from '../components/Button'
+import { getSubjects } from '../services/subjects'
 import type { Subject } from '../types/subject'
 
 export function Subjects() {
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const { user } = useAuth()
-  const [showForm, setShowForm] = useState(false)
-  const [editing, setEditing] = useState<Subject | null>(null)
-  const [name, setName] = useState('')
-  const [code, setCode] = useState('')
-  const [description, setDescription] = useState('')
-  const [isSaving, setIsSaving] = useState(false)
-  const [formError, setFormError] = useState('')
-  const isAdmin = user?.role === 'ADMIN'
 
   useEffect(() => {
     getSubjects()
@@ -28,73 +17,13 @@ export function Subjects() {
       .finally(() => setIsLoading(false))
   }, [])
 
-  function openForm(subject: Subject | null) {
-    setEditing(subject)
-    setName(subject?.name ?? '')
-    setCode(subject?.code ?? '')
-    setDescription(subject?.description ?? '')
-    setFormError('')
-    setShowForm(true)
-  }
-
-  async function handleSave(event: FormEvent) {
-    event.preventDefault()
-    setIsSaving(true)
-    setFormError('')
-    try {
-      const subject = await saveSubject({ name: name.trim(), code: code.trim(), description: description.trim() || null }, editing?.id)
-      setSubjects((current) => editing ? current.map((entry) => entry.id === subject.id ? subject : entry) : [subject, ...current])
-      setShowForm(false)
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Unable to save subject.')
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  async function handleDelete(subject: Subject) {
-    if (!window.confirm(`Delete ${subject.name} and its resources, assignments, timetable, and discussions? This cannot be undone.`)) return
-    try {
-      await deleteSubject(subject.id)
-      setSubjects((current) => current.filter((entry) => entry.id !== subject.id))
-    } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Unable to delete subject.')
-    }
-  }
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <SectionHeader
         as="h1"
         title="Subjects"
         subtitle="Explore your biotechnology courses"
-        action={isAdmin && <Button variant="primary" onClick={() => openForm(null)}>Add Subject</Button>}
       />
-
-      {isAdmin && showForm && (
-        <form onSubmit={handleSave} className="mb-6 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 font-semibold text-neutral-900">{editing ? 'Edit Subject' : 'Add Subject'}</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="text-sm font-medium text-neutral-700">
-              Name
-              <input required maxLength={200} value={name} onChange={(event) => setName(event.target.value)} className="mt-1 block w-full rounded-lg border border-neutral-300 px-3 py-2" />
-            </label>
-            <label className="text-sm font-medium text-neutral-700">
-              Course code
-              <input required maxLength={20} value={code} onChange={(event) => setCode(event.target.value)} className="mt-1 block w-full rounded-lg border border-neutral-300 px-3 py-2" />
-            </label>
-            <label className="text-sm font-medium text-neutral-700 sm:col-span-2">
-              Description
-              <textarea maxLength={2000} value={description} onChange={(event) => setDescription(event.target.value)} className="mt-1 block w-full rounded-lg border border-neutral-300 px-3 py-2" />
-            </label>
-          </div>
-          <div className="mt-4 flex justify-end gap-2">
-            <Button type="button" variant="outline" disabled={isSaving} onClick={() => setShowForm(false)}>Cancel</Button>
-            <Button type="submit" variant="primary" disabled={isSaving}>{isSaving ? 'Saving...' : 'Save Subject'}</Button>
-          </div>
-        </form>
-      )}
-      {formError && <p role="alert" className="mb-4 text-sm text-red-600">{formError}</p>}
 
       {isLoading && (
         <div className="flex items-center justify-center py-16">
@@ -114,7 +43,7 @@ export function Subjects() {
         </div>
       )}
 
-      {!isLoading && !error && <SubjectGrid subjects={subjects} onEdit={isAdmin ? openForm : undefined} onDelete={isAdmin ? handleDelete : undefined} />}
+      {!isLoading && !error && <SubjectGrid subjects={subjects} />}
     </div>
   )
 }

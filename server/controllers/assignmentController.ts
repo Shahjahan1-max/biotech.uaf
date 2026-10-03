@@ -34,8 +34,8 @@ function validateAssignmentInput(body: unknown):
       description: string | null
       dueDate: Date
       subjectId: string
-      fileName?: string | null
-      filePath?: string | null
+      fileName?: string
+      filePath?: string
     }
   | { error: string }
   | null {
@@ -87,8 +87,8 @@ function validateAssignmentInput(body: unknown):
     description: typeof description === 'string' && description.length > 0 ? description : null,
     dueDate: parsedDueDate,
     subjectId: subjectId.trim(),
-    fileName: fileName === null ? null : typeof fileName === 'string' ? fileName : undefined,
-    filePath: filePath === null ? null : typeof filePath === 'string' ? filePath : undefined,
+    fileName: typeof fileName === 'string' ? fileName : undefined,
+    filePath: typeof filePath === 'string' ? filePath : undefined,
   }
 }
 

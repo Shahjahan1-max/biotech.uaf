@@ -1,4 +1,3 @@
-import { useRequestStatus } from '../hooks/useRequestStatus'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Spinner } from '../components/Spinner'
 import { Link } from 'react-router-dom'
@@ -21,22 +20,21 @@ const EMPTY_PAGE: PaginatedAdminStudents = {
 
 export function AdminStudents() {
   const [result, setResult] = useState<PaginatedAdminStudents>(EMPTY_PAGE)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [refreshKey, setRefreshKey] = useState(0)
 
-  const { isLoading, error, setError, setIsLoading } = useRequestStatus(JSON.stringify([search, page, refreshKey]))
-
   useEffect(() => {
     let active = true
+    setIsLoading(true)
+    setError('')
 
     listAdminStudents({ search: search || undefined, page, limit: 20 })
       .then((data) => {
-        if (active) {
-          setResult(data)
-          setError('')
-        }
+        if (active) setResult(data)
       })
       .catch((err: unknown) => {
         if (active) setError(err instanceof Error ? err.message : 'Unable to load students.')
@@ -48,7 +46,7 @@ export function AdminStudents() {
     return () => {
       active = false
     }
-  }, [search, page, refreshKey, setError, setIsLoading])
+  }, [search, page, refreshKey])
 
   function refresh() {
     setRefreshKey((key) => key + 1)

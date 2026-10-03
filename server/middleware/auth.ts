@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express'
-import { getSessionUser } from '../services/authService.js'
+import { verifyToken } from '../services/authService.js'
+import { config } from '../config/env.js'
 
 declare global {
   namespace Express {
@@ -9,17 +10,20 @@ declare global {
   }
 }
 
-export async function requireAuth(req: Request, res: Response, next: NextFunction) {
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
+  const token = req.cookies?.[config.cookieName]
+
+  if (!token) {
+    res.status(401).json({ error: 'Authentication required' })
+    return
+  }
+
   try {
-    const user = await getSessionUser()
-    if (!user) {
-      res.status(401).json({ error: 'Authentication required' })
-      return
-    }
-    req.user = { id: user.id, role: user.role }
+    const decoded = verifyToken(token)
+    req.user = { id: decoded.userId, role: decoded.role }
     next()
   } catch {
-    res.status(503).json({ error: 'Unable to load your account. Please try again.' })
+    res.status(401).json({ error: 'Invalid or expired token' })
   }
 }
 

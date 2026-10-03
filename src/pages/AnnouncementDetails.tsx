@@ -1,4 +1,3 @@
-import { useRequestStatus } from '../hooks/useRequestStatus'
 import { useEffect, useState } from 'react'
 import { Spinner } from '../components/Spinner'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -24,9 +23,9 @@ export function AnnouncementDetails() {
 
   const [announcement, setAnnouncement] = useState<Announcement | null>(null)
   const [subjects, setSubjects] = useState<Subject[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
   const [isEditing, setIsEditing] = useState(false)
-
-  const { isLoading, error, setError, setIsLoading } = useRequestStatus(JSON.stringify([id]))
 
   useEffect(() => {
     getSubjects().then(setSubjects).catch(() => {})
@@ -36,13 +35,12 @@ export function AnnouncementDetails() {
     let active = true
     if (!id) return
 
+    setIsLoading(true)
+    setError('')
 
     getAnnouncement(id)
       .then((data) => {
-        if (active) {
-          setAnnouncement(data)
-          setError('')
-        }
+        if (active) setAnnouncement(data)
       })
       .catch((err: unknown) => {
         if (active) setError(err instanceof Error ? err.message : 'Announcement not found')
@@ -54,7 +52,7 @@ export function AnnouncementDetails() {
     return () => {
       active = false
     }
-  }, [id, setError, setIsLoading])
+  }, [id])
 
   async function handleUpdate(input: AnnouncementInput) {
     if (!announcement) return

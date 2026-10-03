@@ -6,11 +6,6 @@ export interface ResourceInput {
   resourceType: ResourceType
   url?: string | null
   subjectId: string
-  fileName?: string | null
-  originalFileName?: string | null
-  filePath?: string | null
-  fileMimeType?: string | null
-  fileSize?: number | null
 }
 
 export interface StudyResource {
