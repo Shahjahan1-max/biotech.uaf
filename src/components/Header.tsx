@@ -110,18 +110,18 @@ export function Header() {
   }
 
   return (
-    <header className="bg-white/80 backdrop-blur-md border-b border-neutral-200 sticky top-0 z-50">
+    <header className="glass border-b border-neutral-200/70 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-sm">
+            <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-xl flex items-center justify-center shadow-sm shadow-emerald-600/25 ring-1 ring-inset ring-white/40">
               <span className="text-white font-bold text-sm">B</span>
             </div>
             <div className="hidden sm:block">
-              <span className="text-base font-semibold text-neutral-900">
+              <span className="text-base font-semibold tracking-tight text-neutral-900">
                 Biotechnology
               </span>
-              <span className="text-base font-normal text-emerald-600 ml-1.5">
+              <span className="text-base font-medium text-emerald-700 ml-1.5">
                 — Section A
               </span>
             </div>
@@ -134,10 +134,10 @@ export function Header() {
                 to={item.href}
                 aria-current={isActive(item.href) ? 'page' : undefined}
                 className={cn(
-                  'px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150',
+                  'px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 ease-smooth',
                   isActive(item.href)
-                    ? 'text-emerald-700 bg-emerald-50'
-                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                    ? 'text-emerald-700 bg-emerald-50 ring-1 ring-inset ring-emerald-600/15 shadow-sm shadow-emerald-600/5'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70'
                 )}
               >
                 {item.label}
@@ -161,22 +161,22 @@ export function Header() {
                         : 'Notifications'
                     }
                     className={cn(
-                      'relative p-2 rounded-lg transition-colors',
+                      'relative p-2 rounded-xl transition-colors duration-150',
                       bellOpen
                         ? 'bg-neutral-100 text-neutral-900'
-                        : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                        : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70'
                     )}
                   >
                     <BellIcon className="w-5 h-5" />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[11px] font-semibold flex items-center justify-center">
+                      <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[11px] font-semibold flex items-center justify-center ring-2 ring-white shadow-sm">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
                   </button>
 
                   {bellOpen && (
-                    <div id="notification-preview" className="absolute right-0 mt-2 w-80 bg-white border border-neutral-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                    <div id="notification-preview" className="absolute right-0 mt-2 w-80 bg-white/95 backdrop-blur-md border border-neutral-200/80 rounded-2xl shadow-float z-50 overflow-hidden">
                       <div className="flex items-center justify-between px-4 py-2.5 border-b border-neutral-100">
                         <span className="text-sm font-semibold text-neutral-900">
                           Notifications
@@ -265,20 +265,20 @@ export function Header() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                    <span className="text-emerald-700 font-medium text-sm">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center ring-1 ring-inset ring-white/50 shadow-sm shadow-emerald-600/25">
+                    <span className="text-white font-semibold text-sm">
                       {user?.name?.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="text-sm">
-                    <p className="font-medium text-neutral-900">{user?.name}</p>
+                    <p className="font-semibold tracking-tight text-neutral-900">{user?.name}</p>
                     <p className="text-xs text-neutral-500">{user?.role}</p>
                   </div>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="px-3 py-1.5 text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
+                  className="px-3 py-1.5 text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-xl transition-all duration-150"
                 >
                   Logout
                 </button>
@@ -287,13 +287,13 @@ export function Header() {
               <>
                 <Link
                   to="/login"
-                  className="px-3 py-1.5 text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
+                  className="px-3 py-1.5 text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-xl transition-all duration-150"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors shadow-sm"
+                  className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl transition-all duration-150 shadow-sm shadow-emerald-600/25 ring-1 ring-inset ring-emerald-700/20"
                 >
                   Register
                 </Link>
@@ -310,11 +310,11 @@ export function Header() {
                     ? `Notifications, ${unreadCount} unread`
                     : 'Notifications'
                 }
-                className="relative p-2 rounded-lg text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
+                className="relative p-2 rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70 transition-colors"
               >
                 <BellIcon className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[11px] font-semibold flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[11px] font-semibold flex items-center justify-center ring-2 ring-white shadow-sm">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
@@ -322,7 +322,7 @@ export function Header() {
             )}
             <button
               type="button"
-              className="p-2 rounded-lg text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
+              className="p-2 rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70 transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
               aria-expanded={mobileMenuOpen}
@@ -345,12 +345,17 @@ export function Header() {
         aria-label="Mobile navigation"
         className={cn('lg:hidden', mobileMenuOpen ? 'block' : 'hidden')}
       >
-        <div className="px-4 pt-2 pb-4 space-y-1 border-t border-neutral-200 bg-white">
+        <div className="px-4 pt-3 pb-5 space-y-1.5 border-t border-neutral-200/70 bg-white/95 backdrop-blur-md">
           {visibleNavItems.map((item) => (
             <Link
               key={item.label}
               to={item.href}
-              className="block px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+              className={cn(
+                'block px-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
+                isActive(item.href)
+                  ? 'text-emerald-700 bg-emerald-50 ring-1 ring-inset ring-emerald-600/15'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+              )}
             >
               {item.label}
             </Link>
@@ -358,7 +363,7 @@ export function Header() {
           {isAuthenticated && (
             <Link
               to="/notifications"
-              className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
             >
               <span>Notifications</span>
               {unreadCount > 0 && (
@@ -372,7 +377,7 @@ export function Header() {
             {isAuthenticated ? (
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+                className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
               >
                 Logout ({user?.name})
               </button>
@@ -380,13 +385,13 @@ export function Header() {
               <div className="space-y-2 px-3">
                 <Link
                   to="/login"
-                  className="block text-center px-4 py-2 text-sm font-medium text-neutral-700 border border-neutral-300 rounded-lg hover:bg-neutral-50"
+                  className="block text-center px-4 py-2.5 text-sm font-medium text-neutral-700 border border-neutral-300 rounded-xl hover:border-neutral-400 hover:bg-neutral-50 transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="block text-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700"
+                  className="block text-center px-4 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-600/25"
                 >
                   Register
                 </Link>

@@ -13,20 +13,20 @@ export function QuickAccessCard({ icon, title, description, href, accent = 'emer
   return (
     <Link
       to={href}
-      className="block bg-white rounded-xl border border-neutral-200 p-6 shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md hover:border-neutral-300 hover:-translate-y-0.5 group focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+      className="block bg-surface rounded-card border border-border-subtle p-6 shadow-card cursor-pointer transition-all duration-200 ease-smooth hover:shadow-float hover:-translate-y-0.5 hover:border-emerald-200/70 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
     >
       <div
         className={cn(
-          'w-12 h-12 rounded-lg flex items-center justify-center mb-4 transition-colors duration-200',
+          'w-12 h-12 rounded-xl flex items-center justify-center mb-4 ring-1 ring-inset transition-colors duration-200',
           accent === 'emerald'
-            ? 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100'
-            : 'bg-teal-50 text-teal-600 group-hover:bg-teal-100'
+            ? 'bg-emerald-50 text-emerald-600 ring-emerald-600/10 group-hover:bg-emerald-100 group-hover:ring-emerald-600/20'
+            : 'bg-teal-50 text-teal-600 ring-teal-600/10 group-hover:bg-teal-100 group-hover:ring-teal-600/20'
         )}
       >
         {icon}
       </div>
-      <h3 className="font-semibold text-neutral-900 mb-1">{title}</h3>
-      <p className="text-sm text-neutral-500">{description}</p>
+      <h3 className="font-semibold tracking-tight text-neutral-900 mb-1">{title}</h3>
+      <p className="text-sm leading-relaxed text-neutral-500">{description}</p>
     </Link>
   )
 }
