@@ -36,6 +36,8 @@ export function Header() {
   const [previewLoading, setPreviewLoading] = useState(false)
   const [previewError, setPreviewError] = useState('')
   const bellRef = useRef<HTMLDivElement | null>(null)
+  const mobileMenuRef = useRef<HTMLElement | null>(null)
+  const menuToggleRef = useRef<HTMLButtonElement | null>(null)
   const { isAuthenticated, user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -77,6 +79,28 @@ export function Header() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [bellOpen])
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+
+    function closeMenu() {
+      setMobileMenuOpen(false)
+    }
+
+    function handleMenuOutside(event: MouseEvent) {
+      const target = event.target as Node
+      if (mobileMenuRef.current?.contains(target)) return
+      if (menuToggleRef.current?.contains(target)) return
+      closeMenu()
+    }
+
+    document.addEventListener('mousedown', handleMenuOutside)
+    window.addEventListener('popstate', closeMenu)
+    return () => {
+      document.removeEventListener('mousedown', handleMenuOutside)
+      window.removeEventListener('popstate', closeMenu)
+    }
+  }, [mobileMenuOpen])
 
   async function handleBellToggle() {
     if (bellOpen) {
@@ -365,7 +389,8 @@ export function Header() {
             )}
             <button
               type="button"
-              className="p-2.5 rounded-xl text-ink-muted hover:text-ink-strong hover:bg-surface-tint ring-1 ring-inset ring-transparent hover:ring-border-strong transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              ref={menuToggleRef}
+              className="p-3 rounded-xl text-ink-muted hover:text-ink-strong hover:bg-surface-tint ring-1 ring-inset ring-transparent hover:ring-border-strong transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
               aria-expanded={mobileMenuOpen}
@@ -385,8 +410,16 @@ export function Header() {
 
       <nav
         id="mobile-menu"
+        ref={mobileMenuRef}
         aria-label="Mobile navigation"
-        className={cn('lg:hidden', mobileMenuOpen ? 'block' : 'hidden')}
+        onClick={(event) => {
+          const target = event.target as HTMLElement
+          if (target.closest('a, button')) setMobileMenuOpen(false)
+        }}
+        className={cn(
+          'lg:hidden absolute inset-x-0 top-full z-50 max-h-[calc(100dvh-4rem)] overflow-y-auto shadow-panel',
+          mobileMenuOpen ? 'block' : 'hidden'
+        )}
       >
         <div className="px-4 pt-3 pb-5 space-y-1.5 border-t border-border-subtle/80 bg-surface/95 backdrop-blur-md">
           {visibleNavItems.map((item) => (
