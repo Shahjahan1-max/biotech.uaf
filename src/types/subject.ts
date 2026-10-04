@@ -6,3 +6,9 @@ export interface Subject {
   createdAt: string
   updatedAt: string
 }
+
+export interface SubjectInput {
+  name: string
+  code: string
+  description?: string
+}

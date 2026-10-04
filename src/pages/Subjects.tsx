@@ -2,13 +2,21 @@ import { useEffect, useState } from 'react'
 import { Card } from '../components/Card'
 import { SectionHeader } from '../components/SectionHeader'
 import { SubjectGrid } from '../components/SubjectGrid'
-import { getSubjects } from '../services/subjects'
-import type { Subject } from '../types/subject'
+import { SubjectForm } from '../components/SubjectForm'
+import { Button } from '../components/Button'
+import { useAuth } from '../hooks/useAuth'
+import { getSubjects, createSubject, updateSubject } from '../services/subjects'
+import type { Subject, SubjectInput } from '../types/subject'
 
 export function Subjects() {
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'ADMIN'
+
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showForm, setShowForm] = useState(false)
+  const [editing, setEditing] = useState<Subject | null>(null)
 
   useEffect(() => {
     getSubjects()
@@ -17,13 +25,52 @@ export function Subjects() {
       .finally(() => setIsLoading(false))
   }, [])
 
+  async function handleCreate(input: SubjectInput) {
+    const subject = await createSubject(input)
+    setSubjects((current) => [subject, ...current])
+    setShowForm(false)
+  }
+
+  async function handleUpdate(input: SubjectInput) {
+    if (!editing) return
+    const subject = await updateSubject(editing.id, input)
+    setSubjects((current) => current.map((item) => (item.id === subject.id ? subject : item)))
+    setEditing(null)
+  }
+
+  const formOpen = isAdmin && (showForm || editing !== null)
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <SectionHeader
         as="h1"
         title="Subjects"
         subtitle="Explore your biotechnology courses"
+        action={
+          isAdmin ? (
+            <Button
+              variant="primary"
+              onClick={() => {
+                setEditing(null)
+                setShowForm((open) => !open)
+              }}
+            >
+              {showForm ? 'Cancel' : 'Add New Subject'}
+            </Button>
+          ) : undefined
+        }
       />
+
+      {formOpen && (
+        <SubjectForm
+          initial={editing}
+          onSubmit={editing ? handleUpdate : handleCreate}
+          onCancel={() => {
+            setEditing(null)
+            setShowForm(false)
+          }}
+        />
+      )}
 
       {isLoading && (
         <div
@@ -72,7 +119,19 @@ export function Subjects() {
         </Card>
       )}
 
-      {!isLoading && !error && <SubjectGrid subjects={subjects} />}
+      {!isLoading && !error && (
+        <SubjectGrid
+          subjects={subjects}
+          onEdit={
+            isAdmin
+              ? (subject) => {
+                  setShowForm(false)
+                  setEditing(subject)
+                }
+              : undefined
+          }
+        />
+      )}
     </div>
   )
 }

@@ -4,9 +4,10 @@ import { SubjectCard } from './SubjectCard'
 
 interface SubjectGridProps {
   subjects: Subject[]
+  onEdit?: (subject: Subject) => void
 }
 
-export function SubjectGrid({ subjects }: SubjectGridProps) {
+export function SubjectGrid({ subjects, onEdit }: SubjectGridProps) {
   if (subjects.length === 0) {
     return (
       <Card className="p-6">
@@ -33,7 +34,7 @@ export function SubjectGrid({ subjects }: SubjectGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
       {subjects.map((subject) => (
-        <SubjectCard key={subject.id} subject={subject} />
+        <SubjectCard key={subject.id} subject={subject} onEdit={onEdit} />
       ))}
     </div>
   )
