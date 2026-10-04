@@ -24,12 +24,12 @@ export function ResourceFilters({
   onTypeChange,
 }: ResourceFiltersProps) {
   return (
-    <div className="flex flex-col sm:flex-row gap-3 mb-6">
+    <div className="flex flex-col sm:flex-row gap-3">
       <select
         value={selectedSubject}
         onChange={(e) => onSubjectChange(e.target.value)}
         aria-label="Filter by subject"
-        className="px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+        className="w-full sm:w-auto min-w-0 px-3 py-2 bg-surface text-ink-strong border border-border-subtle rounded-control text-sm cursor-pointer transition-colors duration-150 ease-smooth hover:border-neutral-300 focus:outline-none focus:border-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
       >
         <option value="">All Subjects</option>
         {subjects.map((s) => (
@@ -43,7 +43,7 @@ export function ResourceFilters({
         value={selectedType}
         onChange={(e) => onTypeChange(e.target.value as ResourceType | '')}
         aria-label="Filter by resource type"
-        className="px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+        className="w-full sm:w-auto min-w-0 px-3 py-2 bg-surface text-ink-strong border border-border-subtle rounded-control text-sm cursor-pointer transition-colors duration-150 ease-smooth hover:border-neutral-300 focus:outline-none focus:border-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
       >
         <option value="">All Types</option>
         {resourceTypes.map((t) => (

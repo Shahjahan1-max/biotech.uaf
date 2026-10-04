@@ -4,7 +4,6 @@ import { ResourceGrid } from '../components/ResourceGrid'
 import { ResourceFilters } from '../components/ResourceFilters'
 import { FileUpload } from '../components/FileUpload'
 import { Button } from '../components/Button'
-import { Spinner } from '../components/Spinner'
 import { getResources } from '../services/resources'
 import { getSubjects } from '../services/subjects'
 import { uploadFile } from '../services/uploads'
@@ -87,8 +86,8 @@ export function Resources() {
       />
 
       {showUploadForm && isAdmin && (
-        <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6 shadow-sm">
-          <h3 className="font-semibold text-neutral-900 mb-4">Upload Study Resource</h3>
+        <div className="bg-surface rounded-card border border-border-subtle p-6 mb-6 shadow-card ease-smooth">
+          <h3 className="font-semibold text-ink-strong mb-4">Upload Study Resource</h3>
           <FileUpload
             onFileSelect={setUploadFile_}
             onFileRemove={() => setUploadFile_(null)}
@@ -107,29 +106,66 @@ export function Resources() {
         </div>
       )}
 
-      <ResourceFilters
-        subjects={subjects}
-        selectedSubject={selectedSubject}
-        selectedType={selectedType}
-        onSubjectChange={setSelectedSubject}
-        onTypeChange={setSelectedType}
-      />
+      <div className="bg-surface rounded-card border border-border-subtle p-4 mb-6 shadow-card ease-smooth">
+        <ResourceFilters
+          subjects={subjects}
+          selectedSubject={selectedSubject}
+          selectedType={selectedType}
+          onSubjectChange={setSelectedSubject}
+          onTypeChange={setSelectedType}
+        />
+      </div>
 
       {isLoading && (
-        <div className="flex items-center justify-center py-16">
-          <Spinner label="Loading resources" />
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5"
+          role="status"
+          aria-label="Loading resources"
+        >
+          <span className="sr-only">Loading resources</span>
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              aria-hidden="true"
+              className="p-5 bg-surface rounded-card border border-border-subtle shadow-card animate-pulse"
+            >
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div className="h-5 w-20 rounded-full bg-neutral-200/70" />
+                <div className="h-3 w-10 rounded bg-neutral-100" />
+              </div>
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-10 h-10 shrink-0 rounded-control bg-neutral-200/70" />
+                <div className="h-4 w-3/5 rounded bg-neutral-200/70 mt-1" />
+              </div>
+              <div className="space-y-2 mb-4">
+                <div className="h-3 w-full rounded bg-neutral-100" />
+                <div className="h-3 w-4/5 rounded bg-neutral-100" />
+              </div>
+              <div className="p-3 mb-4 bg-surface-soft rounded-control border border-border-subtle">
+                <div className="h-3.5 w-2/3 rounded bg-neutral-200/70" />
+              </div>
+              <div className="h-3.5 w-24 rounded bg-neutral-200/70" />
+            </div>
+          ))}
         </div>
       )}
 
       {error && (
-        <div className="text-center py-16">
-          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
+        <div className="bg-surface rounded-card border border-border-subtle shadow-card p-6">
+          <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+            <span
+              aria-hidden="true"
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-500 ring-1 ring-inset ring-red-600/20"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </span>
+            <div>
+              <h3 className="text-lg font-medium text-neutral-900 mb-1">Error Loading Resources</h3>
+              <p className="text-sm text-ink-muted">{error}</p>
+            </div>
           </div>
-          <h3 className="text-lg font-medium text-neutral-900 mb-1">Error Loading Resources</h3>
-          <p className="text-sm text-neutral-500">{error}</p>
         </div>
       )}
 
