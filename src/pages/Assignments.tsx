@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Spinner } from '../components/Spinner'
-import { SectionHeader } from '../components/SectionHeader'
 import { AssignmentCard } from '../components/AssignmentCard'
 import { AssignmentForm } from '../components/AssignmentForm'
 import { Button } from '../components/Button'
@@ -97,24 +96,95 @@ export function Assignments() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <SectionHeader
-        as="h1"
-        title="Assignments"
-        subtitle="Track your assignment deadlines and submit work"
-        action={
-          isAdmin ? (
-            <Button
-              variant="primary"
-              onClick={() => {
-                setEditing(null)
-                setShowForm((open) => !open)
-              }}
+      <div className="relative overflow-hidden mb-6 rounded-card border border-border-subtle bg-surface-tint shadow-panel animate-fade-up">
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-20 -right-16 h-56 w-56 rounded-full opacity-70"
+          style={{ backgroundImage: 'var(--gradient-halo)' }}
+        />
+        <svg
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-3 right-5 hidden h-24 w-40 sm:block"
+          fill="none"
+          viewBox="0 0 160 96"
+        >
+          <rect
+            x="8"
+            y="16"
+            width="88"
+            height="72"
+            rx="10"
+            className="stroke-emerald-600/25"
+            strokeWidth="2"
+          />
+          <path d="M8 36h88" className="stroke-emerald-600/25" strokeWidth="2" />
+          <path
+            d="M30 8v16M74 8v16"
+            className="stroke-teal-500/40"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <path
+            d="M34 58l10 10 22-22"
+            className="stroke-cyan-500/60"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle cx="128" cy="34" r="6" className="fill-indigo-400/50" />
+          <circle cx="148" cy="62" r="4" className="fill-cyan-400/60" />
+          <circle cx="122" cy="74" r="3" className="fill-emerald-400/60" />
+          <path
+            d="M128 34l20 28M128 34l-6 40M148 62l-26 12"
+            className="stroke-indigo-400/40"
+            strokeWidth="1.5"
+          />
+        </svg>
+
+        <div className="relative flex flex-col gap-4 p-5 sm:p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <span className="inline-flex items-center gap-2 rounded-full border border-cyan-600/20 bg-surface/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-accent-secondary shadow-sm">
+              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-luminous" />
+              Academic Deadline Center
+            </span>
+            <h1
+              className="mt-2.5 text-xl sm:text-2xl font-semibold tracking-tight text-transparent bg-clip-text"
+              style={{ backgroundImage: 'var(--gradient-brand)' }}
             >
-              {showForm ? 'Cancel' : 'New Assignment'}
-            </Button>
-          ) : undefined
-        }
-      />
+              Assignments
+            </h1>
+            <p className="text-sm text-ink-muted mt-1 leading-relaxed max-w-2xl">
+              Track your assignment deadlines and submit work
+            </p>
+          </div>
+
+          <div className="flex flex-col items-start gap-3 sm:items-end">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-baseline gap-1.5 rounded-full border border-border-subtle bg-surface px-3 py-1.5 shadow-sm">
+                <span className="text-sm font-bold text-emerald-700">{assignments.length}</span>
+                <span className="text-xs font-medium text-ink-muted">Total</span>
+              </span>
+              <span className="inline-flex items-baseline gap-1.5 rounded-full border border-cyan-600/20 bg-cyan-50/70 px-3 py-1.5 shadow-sm">
+                <span className="text-sm font-bold text-cyan-700">
+                  {filteredAssignments.length}
+                </span>
+                <span className="text-xs font-medium text-ink-muted">Showing</span>
+              </span>
+            </div>
+            {isAdmin && (
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setEditing(null)
+                  setShowForm((open) => !open)
+                }}
+              >
+                {showForm ? 'Cancel' : 'New Assignment'}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
 
       {isAdmin && formOpen && (
         <AssignmentForm
@@ -128,50 +198,84 @@ export function Assignments() {
         />
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <label className="block">
-          <span className="text-sm font-medium text-neutral-600">Subject</span>
-          <select
-            value={selectedSubject}
-            onChange={(e) => setSelectedSubject(e.target.value)}
-            className="mt-1 w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-          >
-            <option value="">All Subjects</option>
-            {subjects.map((subject) => (
-              <option key={subject.id} value={subject.id}>
-                {subject.code} — {subject.name}
-              </option>
-            ))}
-          </select>
-        </label>
+      <div className="mb-6 rounded-card border border-border-subtle bg-surface p-4 shadow-card animate-fade-up" style={{ animationDelay: '80ms' }}>
+        <div className="mb-3 flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-control bg-cyan-50 text-cyan-700 ring-1 ring-inset ring-cyan-600/15">
+            <svg
+              aria-hidden="true"
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.75}
+                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+              />
+            </svg>
+          </span>
+          <span className="text-sm font-semibold text-ink-strong">Filters</span>
+        </div>
 
-        <label className="block">
-          <span className="text-sm font-medium text-neutral-600">Status</span>
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value as AssignmentStatus | '')}
-            className="mt-1 w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-          >
-            <option value="">All Statuses</option>
-            {statusOptions.map((status) => (
-              <option key={status} value={status}>
-                {status.replace('_', ' ')}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="text-sm font-medium text-ink-muted">Subject</span>
+            <select
+              value={selectedSubject}
+              onChange={(e) => setSelectedSubject(e.target.value)}
+              className="mt-1 w-full px-3 py-2 border border-border-subtle rounded-control text-sm bg-surface text-ink-strong transition-colors duration-150 hover:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500"
+            >
+              <option value="">All Subjects</option>
+              {subjects.map((subject) => (
+                <option key={subject.id} value={subject.id}>
+                  {subject.code} — {subject.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-ink-muted">Status</span>
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value as AssignmentStatus | '')}
+              className="mt-1 w-full px-3 py-2 border border-border-subtle rounded-control text-sm bg-surface text-ink-strong transition-colors duration-150 hover:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500"
+            >
+              <option value="">All Statuses</option>
+              {statusOptions.map((status) => (
+                <option key={status} value={status}>
+                  {status.replace('_', ' ')}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </div>
 
       {isLoading && (
-        <div className="flex items-center justify-center py-16">
+        <div className="flex items-center justify-center py-16 rounded-card border border-border-subtle bg-surface-tint/70 shadow-card animate-reveal">
           <Spinner label="Loading" />
         </div>
       )}
 
       {error && (
-        <div className="text-center py-16">
-          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div
+          role="alert"
+          className="text-center py-16 rounded-card border border-border-subtle bg-surface shadow-card animate-reveal"
+        >
+          <div
+            aria-hidden="true"
+            className="w-16 h-16 bg-danger-soft rounded-full flex items-center justify-center mx-auto mb-4 ring-1 ring-inset ring-danger/10"
+          >
+            <svg
+              aria-hidden="true"
+              className="w-8 h-8 text-danger"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -180,21 +284,26 @@ export function Assignments() {
               />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-neutral-900 mb-1">Error Loading Assignments</h3>
-          <p className="text-sm text-neutral-500">{error}</p>
+          <h3 className="text-lg font-medium text-ink-strong mb-1">Error Loading Assignments</h3>
+          <p className="text-sm text-ink-muted">{error}</p>
         </div>
       )}
 
       {!isLoading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredAssignments.map((assignment) => (
-            <div key={assignment.id} className="flex flex-col">
+          {filteredAssignments.map((assignment, index) => (
+            <div
+              key={assignment.id}
+              className="flex flex-col animate-fade-up"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
               <AssignmentCard assignment={assignment} />
               {isAdmin && (
-                <div className="mt-2 flex justify-end gap-2">
+                <div className="mt-2 flex justify-end gap-2 rounded-card border border-border-subtle bg-surface-soft/60 px-2.5 py-2">
                   <Button
                     size="sm"
                     variant="outline"
+                    className="border-border-subtle! hover:border-emerald-300! hover:bg-surface-tint hover:text-emerald-700"
                     onClick={() => {
                       setShowForm(false)
                       setEditing(assignment)
@@ -205,6 +314,7 @@ export function Assignments() {
                   <Button
                     size="sm"
                     variant="ghost"
+                    className="hover:text-red-700 hover:bg-red-50"
                     onClick={() => handleDelete(assignment.id)}
                   >
                     Delete
@@ -215,9 +325,18 @@ export function Assignments() {
           ))}
 
           {filteredAssignments.length === 0 && (
-            <div className="col-span-full text-center py-16">
-              <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="col-span-full text-center py-16 rounded-card border border-border-subtle bg-surface shadow-card animate-reveal">
+              <div
+                aria-hidden="true"
+                className="w-16 h-16 bg-surface-tint rounded-full flex items-center justify-center mx-auto mb-4 ring-1 ring-inset ring-emerald-600/10"
+              >
+                <svg
+                  aria-hidden="true"
+                  className="w-8 h-8 text-emerald-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -226,8 +345,8 @@ export function Assignments() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-neutral-900 mb-1">No Assignments Found</h3>
-              <p className="text-sm text-neutral-500">
+              <h3 className="text-lg font-medium text-ink-strong mb-1">No Assignments Found</h3>
+              <p className="text-sm text-ink-muted">
                 {isAdmin
                   ? 'Create your first assignment to get started.'
                   : 'No assignments match your filters. Ask your instructor to create assignments.'}
