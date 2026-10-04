@@ -3,9 +3,11 @@ import { ResourceCard } from './ResourceCard'
 
 interface ResourceGridProps {
   resources: StudyResource[]
+  onEdit?: (resource: StudyResource) => void
+  onDelete?: (resource: StudyResource) => void
 }
 
-export function ResourceGrid({ resources }: ResourceGridProps) {
+export function ResourceGrid({ resources, onEdit, onDelete }: ResourceGridProps) {
   if (resources.length === 0) {
     return (
       <div className="bg-surface rounded-card border border-border-subtle shadow-card p-6">
@@ -32,7 +34,12 @@ export function ResourceGrid({ resources }: ResourceGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
       {resources.map((resource) => (
-        <ResourceCard key={resource.id} resource={resource} />
+        <ResourceCard
+          key={resource.id}
+          resource={resource}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
       ))}
     </div>
   )

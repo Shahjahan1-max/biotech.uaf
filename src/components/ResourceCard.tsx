@@ -1,9 +1,12 @@
 import type { StudyResource } from '../types/resource'
 import { ResourceTypeBadge } from './ResourceTypeBadge'
+import { Button } from './Button'
 import { resolveUploadUrl } from '../services/uploads'
 
 interface ResourceCardProps {
   resource: StudyResource
+  onEdit?: (resource: StudyResource) => void
+  onDelete?: (resource: StudyResource) => void
 }
 
 function formatFileSize(bytes: number): string {
@@ -12,7 +15,7 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function ResourceCard({ resource }: ResourceCardProps) {
+export function ResourceCard({ resource, onEdit, onDelete }: ResourceCardProps) {
   const hasFile = !!resource.fileName
   const resourceUrl = resource.url
     ? resolveUploadUrl(resource.url)
@@ -85,6 +88,21 @@ export function ResourceCard({ resource }: ResourceCardProps) {
           <span className="inline-flex items-center text-sm text-ink-muted">No link available</span>
         )}
       </div>
+
+      {(onEdit || onDelete) && (
+        <div className="mt-3 pt-3 border-t border-border-subtle flex justify-end gap-2">
+          {onEdit && (
+            <Button size="sm" variant="outline" onClick={() => onEdit(resource)}>
+              Edit
+            </Button>
+          )}
+          {onDelete && (
+            <Button size="sm" variant="ghost" onClick={() => onDelete(resource)}>
+              Delete
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

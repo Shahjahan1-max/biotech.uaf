@@ -4,7 +4,7 @@ import { ResourceGrid } from '../components/ResourceGrid'
 import { ResourceFilters } from '../components/ResourceFilters'
 import { FileUpload } from '../components/FileUpload'
 import { Button } from '../components/Button'
-import { getResources, createResource } from '../services/resources'
+import { getResources, createResource, updateResource, deleteResource } from '../services/resources'
 import { getSubjects } from '../services/subjects'
 import { uploadFile, deleteUpload } from '../services/uploads'
 import { useAuth } from '../hooks/useAuth'
@@ -20,6 +20,12 @@ const RESOURCE_TYPE_LABELS: Record<ResourceType, string> = {
   PRESENTATION: 'Presentation',
   REFERENCE: 'Reference',
   OTHER: 'Other',
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 export function Resources() {
@@ -38,8 +44,10 @@ export function Resources() {
   const [resourceSubjectId, setResourceSubjectId] = useState('')
   const [resourceType, setResourceType] = useState<ResourceType>('NOTE')
   const [resourceDescription, setResourceDescription] = useState('')
+  const [editing, setEditing] = useState<StudyResource | null>(null)
 
   const isAdmin = user?.role === 'ADMIN'
+  const formOpen = isAdmin && (showUploadForm || editing !== null)
 
   useEffect(() => {
     getSubjects().then(setSubjects).catch(() => {})
@@ -111,6 +119,84 @@ export function Resources() {
     }
   }
 
+  function resetFormFields() {
+    setResourceTitle('')
+    setResourceDescription('')
+    setResourceType('NOTE')
+    setResourceSubjectId('')
+    setUploadFile_(null)
+    setUploadError('')
+  }
+
+  function startEdit(resource: StudyResource) {
+    setShowUploadForm(false)
+    setUploadFile_(null)
+    setUploadError('')
+    setResourceTitle(resource.title)
+    setResourceDescription(resource.description ?? '')
+    setResourceType(resource.resourceType)
+    setResourceSubjectId(resource.subjectId)
+    setEditing(resource)
+  }
+
+  function handleCancelForm() {
+    setEditing(null)
+    setShowUploadForm(false)
+    resetFormFields()
+  }
+
+  async function handleUpdate() {
+    if (!editing) return
+
+    const title = resourceTitle.trim()
+    if (!title) {
+      setUploadError('Title is required')
+      return
+    }
+    const subjectId = resourceSubjectId || selectedSubject
+    if (!subjectId) {
+      setUploadError('Subject is required')
+      return
+    }
+
+    setIsUploading(true)
+    setUploadError('')
+
+    try {
+      await updateResource(editing.id, {
+        title,
+        description: resourceDescription.trim() || null,
+        resourceType,
+        subjectId,
+      })
+      handleCancelForm()
+      getResources(selectedSubject || undefined).then(setResources).catch(() => {})
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Failed to update resource')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  async function handleDelete(resource: StudyResource) {
+    const confirmed = window.confirm(
+      'Delete this resource? The uploaded file will also be removed. This cannot be undone.'
+    )
+    if (!confirmed) return
+
+    try {
+      await deleteResource(resource.id)
+      if (editing?.id === resource.id) {
+        handleCancelForm()
+      } else {
+        setUploadError('')
+      }
+      getResources(selectedSubject || undefined).then(setResources).catch(() => {})
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Failed to delete resource')
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <SectionHeader
@@ -118,15 +204,24 @@ export function Resources() {
         title="Study Resources"
         subtitle="Access lecture notes, study guides, and reference materials"
         action={isAdmin && (
-          <Button variant="primary" onClick={() => setShowUploadForm(!showUploadForm)}>
+          <Button
+            variant="primary"
+            onClick={() => {
+              setEditing(null)
+              resetFormFields()
+              setShowUploadForm((open) => !open)
+            }}
+          >
             {showUploadForm ? 'Cancel' : 'Upload File'}
           </Button>
         )}
       />
 
-      {showUploadForm && isAdmin && (
+      {formOpen && (
         <div className="bg-surface rounded-card border border-border-subtle p-6 mb-6 shadow-card ease-smooth">
-          <h3 className="font-semibold text-ink-strong mb-4">Upload Study Resource</h3>
+          <h3 className="font-semibold text-ink-strong mb-4">
+            {editing ? 'Edit Study Resource' : 'Upload Study Resource'}
+          </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <label className="block sm:col-span-2">
@@ -187,21 +282,59 @@ export function Resources() {
             </label>
           </div>
 
-          <div className="mt-4">
-            <FileUpload
-              onFileSelect={setUploadFile_}
-              onFileRemove={() => setUploadFile_(null)}
-              isUploading={isUploading}
-              error={uploadError}
-            />
-          </div>
-          <div className="mt-4 flex justify-end">
+          {editing ? (
+            <div className="mt-4 p-3 bg-surface-soft border border-border-subtle rounded-control">
+              <p className="text-xs font-medium text-ink-muted mb-1">
+                {editing.fileName ? 'Current file' : 'Attachment'}
+              </p>
+              {editing.fileName ? (
+                <div className="flex items-center gap-2 text-sm text-ink min-w-0">
+                  <span className="truncate">
+                    {editing.originalFileName || editing.fileName}
+                  </span>
+                  {editing.fileSize != null && (
+                    <span className="text-xs text-ink-muted ml-auto shrink-0">
+                      {formatFileSize(editing.fileSize)}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-ink-muted">No file attached.</p>
+              )}
+            </div>
+          ) : (
+            <div className="mt-4">
+              <FileUpload
+                onFileSelect={setUploadFile_}
+                onFileRemove={() => setUploadFile_(null)}
+                isUploading={isUploading}
+                error={uploadError}
+              />
+            </div>
+          )}
+
+          {editing && uploadError && (
+            <p role="alert" className="mt-4 text-sm text-red-600">
+              {uploadError}
+            </p>
+          )}
+
+          <div className="mt-4 flex justify-end gap-3">
+            <Button variant="outline" onClick={handleCancelForm} disabled={isUploading}>
+              Cancel
+            </Button>
             <Button
               variant="primary"
-              onClick={handleUpload}
-              disabled={!uploadFile_ || isUploading}
+              onClick={editing ? handleUpdate : handleUpload}
+              disabled={editing ? isUploading : !uploadFile_ || isUploading}
             >
-              {isUploading ? 'Uploading...' : 'Upload'}
+              {isUploading
+                ? editing
+                  ? 'Saving...'
+                  : 'Uploading...'
+                : editing
+                  ? 'Save Changes'
+                  : 'Upload'}
             </Button>
           </div>
         </div>
@@ -216,6 +349,15 @@ export function Resources() {
           onTypeChange={setSelectedType}
         />
       </div>
+
+      {!formOpen && uploadError && (
+        <div
+          role="alert"
+          className="mb-6 p-4 bg-red-50 border border-red-200 rounded-card text-sm text-red-700"
+        >
+          {uploadError}
+        </div>
+      )}
 
       {isLoading && (
         <div
@@ -270,7 +412,13 @@ export function Resources() {
         </div>
       )}
 
-      {!isLoading && !error && <ResourceGrid resources={visibleResources} />}
+      {!isLoading && !error && (
+        <ResourceGrid
+          resources={visibleResources}
+          onEdit={isAdmin ? startEdit : undefined}
+          onDelete={isAdmin ? handleDelete : undefined}
+        />
+      )}
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import type { ResourceType } from '@prisma/client'
 import { prisma } from '../utils/prisma.js'
+import { storageService } from './storage/index.js'
 import type { ResourceInput, StudyResource } from '../types/resource.js'
 import { excerpt, notifyStudents, safeNotify } from './notificationService.js'
 
@@ -111,4 +112,15 @@ export async function deleteResource(id: string): Promise<void> {
   if (!existing) throw new Error('Resource not found')
 
   await prisma.studyResource.delete({ where: { id } })
+
+  if (existing.filePath) {
+    try {
+      await storageService.delete(existing.filePath)
+    } catch (error) {
+      console.error(
+        `Failed to delete stored file "${existing.filePath}" for resource ${id}:`,
+        error
+      )
+    }
+  }
 }

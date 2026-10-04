@@ -28,3 +28,18 @@ export async function createResource(input: ResourceInput): Promise<StudyResourc
   })
   return data.resource
 }
+
+export async function updateResource(id: string, input: ResourceInput): Promise<StudyResource> {
+  const data = await apiFetch<{ resource: StudyResource }>(
+    `/resources/${encodeURIComponent(id)}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }
+  )
+  return data.resource
+}
+
+export async function deleteResource(id: string): Promise<void> {
+  await apiFetch(`/resources/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
