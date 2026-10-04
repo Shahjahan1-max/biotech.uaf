@@ -75,14 +75,19 @@
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7), 0 1px 2px rgb(0 0 0 / 0.04);
 }
 
-/* ── Decorative molecular/DNA-inspired background (~4% intensity) ── */
+/* ── Decorative molecular/DNA-inspired background (~4% intensity) ──
+   Phase A: added cyan atmospheric halo + molecular node-network + dot-lattice
+   layers. All pre-existing layers kept byte-identical; class name unchanged. */
 @utility biotech-motif {
   background-image:
+    radial-gradient(64rem 30rem at 78% 118%, rgb(34 211 238 / 0.05), transparent 60%),
     radial-gradient(90rem 40rem at 110% -10%, rgb(16 185 129 / 0.06), transparent 60%),
     radial-gradient(70rem 36rem at -20% 10%, rgb(13 148 136 / 0.05), transparent 55%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23064e3b' stroke-opacity='0.05' stroke-width='1'%3E%3Cpath d='M0 60 C20 40 40 80 60 60 S100 40 120 60'/%3E%3Cpath d='M60 0 C40 20 80 40 60 60 S40 100 60 120'/%3E%3C/g%3E%3Cg fill='%23047857' fill-opacity='0.05'%3E%3Ccircle cx='60' cy='60' r='2.5'/%3E%3Ccircle cx='0' cy='60' r='1.5'/%3E%3Ccircle cx='120' cy='60' r='1.5'/%3E%3Ccircle cx='60' cy='0' r='1.5'/%3E%3Ccircle cx='60' cy='120' r='1.5'/%3E%3C/g%3E%3C/svg%3E");
-  background-repeat: no-repeat, no-repeat, repeat;
-  background-size: auto, auto, 120px 120px;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23064e3b' stroke-opacity='0.05' stroke-width='1'%3E%3Cpath d='M0 60 C20 40 40 80 60 60 S100 40 120 60'/%3E%3Cpath d='M60 0 C40 20 80 40 60 60 S40 100 60 120'/%3E%3C/g%3E%3Cg fill='%23047857' fill-opacity='0.05'%3E%3Ccircle cx='60' cy='60' r='2.5'/%3E%3Ccircle cx='0' cy='60' r='1.5'/%3E%3Ccircle cx='120' cy='60' r='1.5'/%3E%3Ccircle cx='60' cy='0' r='1.5'/%3E%3Ccircle cx='60' cy='120' r='1.5'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='none' stroke='%230d9488' stroke-opacity='0.06' stroke-width='1'%3E%3Cpath d='M24 44 L74 22 L124 52 L142 112 L82 142 L32 112 Z'/%3E%3Cpath d='M74 22 L82 142'/%3E%3Cpath d='M24 44 L124 52'/%3E%3C/g%3E%3Cg fill='%23047857' fill-opacity='0.06'%3E%3Ccircle cx='24' cy='44' r='2.5'/%3E%3Ccircle cx='74' cy='22' r='2'/%3E%3Ccircle cx='124' cy='52' r='2.5'/%3E%3Ccircle cx='142' cy='112' r='2'/%3E%3Ccircle cx='82' cy='142' r='2.5'/%3E%3Ccircle cx='32' cy='112' r='2'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(circle at 1px 1px, rgb(4 120 87 / 0.05) 1px, transparent 1.5px);
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat, repeat;
+  background-size: auto, auto, auto, 120px 120px, 160px 160px, 32px 32px;
 }
 
 body {
@@ -132,4 +137,120 @@ button {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Phase A — Visual Foundation
+   Additive-only: no existing token, utility, or rule below is removed,
+   renamed, or revalued. Identity: "Lab-grade precision, campus-grade warmth."
+   ═══════════════════════════════════════════════════════════════════ */
+
+@theme static {
+  /* 1 — Cyan scale (standard Tailwind-compatible ramp; teal already exists) */
+  --color-cyan-50: #ecfeff;
+  --color-cyan-100: #cffafe;
+  --color-cyan-200: #a5f3fc;
+  --color-cyan-300: #67e8f9;
+  --color-cyan-400: #22d3ee;
+  --color-cyan-500: #06b6d4;
+  --color-cyan-600: #0891b2;
+  --color-cyan-700: #0e7490;
+  --color-cyan-800: #155e75;
+  --color-cyan-900: #164e63;
+  --color-cyan-950: #083344;
+
+  /* 2 — Accent tokens (luminous = decorative highlights/glows only, never small text) */
+  --color-accent-hover: #0f766e;
+  --color-accent-secondary: #0891b2;
+  --color-luminous: #22d3ee;
+
+  /* 3 — Surface / canvas tokens (future page-specific use) */
+  --color-canvas: #f6f9f8;
+  --color-surface-tint: #f0f7f5;
+  --color-surface-deep: #04211c;
+  --color-ink-subtle: #9ca3af; /* decorative only — never meaningful body text */
+
+  /* 4 — Semantic state pairs (foundation only; components adopt later) */
+  --color-success: #059669;
+  --color-success-hover: #047857;
+  --color-success-soft: #ecfdf5;
+  --color-warning: #d97706;
+  --color-warning-hover: #b45309;
+  --color-warning-soft: #fffbeb;
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-soft: #fef2f2;
+
+  /* 5 — Gradient tokens */
+  --gradient-brand: linear-gradient(135deg, #059669, #0d9488, #0891b2);
+  --gradient-halo: radial-gradient(closest-side, rgb(34 211 238 / 0.18), transparent);
+  --gradient-deep: linear-gradient(160deg, #04211c, #064e3b 55%, #0f766e);
+
+  /* 6 — Premium depth (subtle, never heavy) */
+  --shadow-glow: 0 0 0 1px rgb(13 148 136 / 0.12), 0 8px 28px -8px rgb(16 185 129 / 0.25);
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.04), 0 16px 40px -12px rgb(0 0 0 / 0.10);
+  --radius-panel: 1.25rem;
+
+  /* 7 — Motion durations (--ease-smooth above remains the easing source) */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+  --duration-drift: 12s;
+}
+
+/* ── Phase A keyframes (auto-disabled by the reduced-motion block above) ── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+@keyframes drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes pop {
+  from { transform: scale(0.98); }
+  to { transform: scale(1); }
+}
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes indicator {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes motif-drift {
+  0%, 100% { background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0; }
+  50% { background-position: 0 -6px, 0 -6px, 0 -6px, 3px -4px, 0 -5px, 0 -6px; }
+}
+
+/* ── Phase A animation utilities (existing Tailwind utilities untouched) ── */
+@utility animate-fade-up {
+  animation: fade-up var(--duration-slow) var(--ease-smooth) both;
+}
+@utility animate-shimmer {
+  animation: shimmer 1.6s linear infinite;
+}
+@utility animate-drift {
+  animation: drift var(--duration-drift) var(--ease-smooth) infinite;
+}
+@utility animate-pop {
+  animation: pop var(--duration-fast) var(--ease-smooth) both;
+}
+@utility animate-reveal {
+  animation: reveal var(--duration-base) var(--ease-smooth) both;
+}
+@utility animate-indicator {
+  animation: indicator var(--duration-base) var(--ease-smooth) both;
+  transform-origin: left center;
+}
+
+/* ── Motif micro-drift: ~20s, decorative background only, barely perceptible.
+      The reduced-motion block above collapses this automatically. ── */
+.biotech-motif {
+  animation: motif-drift 20s ease-in-out infinite;
 }
