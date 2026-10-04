@@ -110,18 +110,41 @@ export function Header() {
   }
 
   return (
-    <header className="glass border-b border-neutral-200/70 sticky top-0 z-50">
+    <header className="glass sticky top-0 z-50 border-b border-border-subtle/80 shadow-panel">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-xl flex items-center justify-center shadow-sm shadow-emerald-600/25 ring-1 ring-inset ring-white/40">
-              <span className="text-white font-bold text-sm">B</span>
-            </div>
+        <div className="relative flex items-center justify-between h-16">
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-emerald-500/60 via-teal-400/50 to-cyan-400/50"
+          />
+
+          <Link to="/" className="group/logo flex items-center gap-3">
+            <span className="w-9 h-9 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 shadow-sm shadow-emerald-600/30 ring-1 ring-inset ring-white/40 transition-shadow duration-200 group-hover/logo:shadow-glow">
+              <svg
+                aria-hidden="true"
+                className="w-5 h-5 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.75}
+              >
+                <path strokeLinecap="round" d="M7.5 3.5c0 4.5 9 4.5 9 8.5s-9 4-9 8.5" />
+                <path strokeLinecap="round" d="M16.5 3.5c0 4.5-9 4.5-9 8.5s9 4 9 8.5" />
+                <path strokeLinecap="round" d="M9.5 7.5h5M9.5 12h5M9.5 16.5h5" />
+                <circle cx="7.5" cy="3.5" r="1.4" fill="currentColor" stroke="none" />
+                <circle cx="16.5" cy="3.5" r="1.4" fill="currentColor" stroke="none" />
+                <circle cx="7.5" cy="20.5" r="1.4" fill="currentColor" stroke="none" />
+                <circle cx="16.5" cy="20.5" r="1.4" fill="currentColor" stroke="none" />
+              </svg>
+            </span>
             <div className="hidden sm:block">
-              <span className="text-base font-semibold tracking-tight text-neutral-900">
+              <span
+                className="text-base font-semibold tracking-tight text-transparent bg-clip-text"
+                style={{ backgroundImage: 'var(--gradient-brand)' }}
+              >
                 Biotechnology
               </span>
-              <span className="text-base font-medium text-emerald-700 ml-1.5">
+              <span className="text-base font-medium text-teal-700 ml-1.5">
                 — Section A
               </span>
             </div>
@@ -134,13 +157,19 @@ export function Header() {
                 to={item.href}
                 aria-current={isActive(item.href) ? 'page' : undefined}
                 className={cn(
-                  'px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 ease-smooth',
+                  'relative px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150 ease-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white',
                   isActive(item.href)
-                    ? 'text-emerald-700 bg-emerald-50 ring-1 ring-inset ring-emerald-600/15 shadow-sm shadow-emerald-600/5'
-                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70'
+                    ? 'text-emerald-700 bg-surface-tint ring-1 ring-inset ring-emerald-600/20 shadow-sm shadow-emerald-600/10'
+                    : 'text-ink-muted hover:text-ink-strong hover:bg-surface-tint/70'
                 )}
               >
                 {item.label}
+                {isActive(item.href) && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-x-2.5 bottom-1 h-0.5 rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 animate-indicator"
+                  />
+                )}
               </Link>
             ))}
           </nav>
@@ -161,37 +190,37 @@ export function Header() {
                         : 'Notifications'
                     }
                     className={cn(
-                      'relative p-2 rounded-xl transition-colors duration-150',
+                      'relative p-2.5 rounded-xl ring-1 ring-inset transition-all duration-150 ease-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white',
                       bellOpen
-                        ? 'bg-neutral-100 text-neutral-900'
-                        : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70'
+                        ? 'bg-surface-tint text-emerald-700 ring-emerald-600/25 shadow-sm'
+                        : 'text-ink-muted ring-transparent hover:text-emerald-700 hover:bg-surface-tint/70 hover:ring-emerald-600/15'
                     )}
                   >
                     <BellIcon className="w-5 h-5" />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[11px] font-semibold flex items-center justify-center ring-2 ring-white shadow-sm">
+                      <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[11px] font-semibold flex items-center justify-center ring-2 ring-white shadow-sm">
                         {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
                   </button>
 
                   {bellOpen && (
-                    <div id="notification-preview" className="absolute right-0 mt-2 w-80 bg-white/95 backdrop-blur-md border border-neutral-200/80 rounded-2xl shadow-float z-50 overflow-hidden">
-                      <div className="flex items-center justify-between px-4 py-2.5 border-b border-neutral-100">
-                        <span className="text-sm font-semibold text-neutral-900">
+                    <div id="notification-preview" className="absolute right-0 mt-2 w-80 bg-surface/95 backdrop-blur-md border border-border-subtle rounded-card shadow-panel z-50 overflow-hidden animate-reveal">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle bg-surface-soft/60">
+                        <span className="text-sm font-semibold text-ink-strong">
                           Notifications
                         </span>
                         <Link
                           to="/notifications"
                           onClick={() => setBellOpen(false)}
-                          className="text-xs font-medium text-emerald-700 hover:text-emerald-800"
+                          className="text-xs font-medium text-emerald-700 hover:text-emerald-800 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                         >
                           View all
                         </Link>
                       </div>
 
                       {previewLoading && (
-                        <div className="px-4 py-6 text-center text-sm text-neutral-500">
+                        <div className="px-4 py-6 text-center text-sm text-ink-muted">
                           Loading...
                         </div>
                       )}
@@ -203,13 +232,13 @@ export function Header() {
                       )}
 
                       {!previewLoading && !previewError && preview.length === 0 && (
-                        <div className="px-4 py-6 text-center text-sm text-neutral-500">
+                        <div className="px-4 py-6 text-center text-sm text-ink-muted">
                           No notifications yet.
                         </div>
                       )}
 
                       {!previewLoading && !previewError && preview.length > 0 && (
-                        <div className="max-h-80 overflow-y-auto divide-y divide-neutral-100">
+                        <div className="max-h-80 overflow-y-auto divide-y divide-border-subtle">
                           {preview.map((notification) => {
                             const isUnread = notification.readAt === null
                             return (
@@ -218,30 +247,43 @@ export function Header() {
                                 type="button"
                                 onClick={() => handlePreviewSelect(notification)}
                                 className={cn(
-                                  'w-full text-left px-4 py-3 hover:bg-neutral-50 transition-colors',
-                                  isUnread && 'bg-emerald-50/50'
+                                  'w-full text-left px-4 py-3 transition-colors duration-150',
+                                  isUnread ? 'bg-surface-tint/60 hover:bg-surface-tint' : 'hover:bg-surface-soft'
                                 )}
                               >
-                                <div className="flex items-start gap-2">
-                                  {isUnread && (
-                                    <span
-                                      aria-label="Unread"
-                                      className="mt-1.5 w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0"
-                                    />
-                                  )}
-                                  <div className="min-w-0">
-                                    <p
-                                      className={cn(
-                                        'text-sm text-neutral-900 truncate',
-                                        isUnread ? 'font-semibold' : 'font-medium'
+                                <div className="flex items-start gap-2.5">
+                                  <span
+                                    aria-hidden="true"
+                                    className={cn(
+                                      'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-control ring-1 ring-inset',
+                                      isUnread
+                                        ? 'bg-emerald-50 text-emerald-600 ring-emerald-600/15'
+                                        : 'bg-surface-soft text-ink-muted ring-border-subtle'
+                                    )}
+                                  >
+                                    <BellIcon className="w-4 h-4" />
+                                  </span>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      {isUnread && (
+                                        <span
+                                          aria-label="Unread"
+                                          className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0"
+                                        />
                                       )}
-                                    >
-                                      {notification.title}
-                                    </p>
-                                    <p className="text-xs text-neutral-500 truncate">
+                                      <p
+                                        className={cn(
+                                          'text-sm text-ink-strong truncate min-w-0',
+                                          isUnread ? 'font-semibold' : 'font-medium'
+                                        )}
+                                      >
+                                        {notification.title}
+                                      </p>
+                                    </div>
+                                    <p className="text-xs text-ink truncate">
                                       {notification.message}
                                     </p>
-                                    <p className="text-xs text-neutral-400 mt-0.5">
+                                    <p className="text-xs text-ink-muted mt-0.5">
                                       {new Date(notification.createdAt).toLocaleDateString()}
                                     </p>
                                   </div>
@@ -252,11 +294,11 @@ export function Header() {
                         </div>
                       )}
 
-                      <div className="border-t border-neutral-100 px-4 py-2.5">
+                      <div className="border-t border-border-subtle px-4 py-3">
                         <Link
                           to="/notifications"
                           onClick={() => setBellOpen(false)}
-                          className="block text-center text-sm font-medium text-emerald-700 hover:text-emerald-800"
+                          className="block text-center text-sm font-medium text-emerald-700 hover:text-emerald-800 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                         >
                           View all notifications
                         </Link>
@@ -265,20 +307,20 @@ export function Header() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center ring-1 ring-inset ring-white/50 shadow-sm shadow-emerald-600/25">
+                <div className="flex items-center gap-2.5 group/user">
+                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-full flex items-center justify-center ring-1 ring-inset ring-white/60 shadow-sm shadow-teal-600/30 transition-shadow duration-200 group-hover/user:shadow-glow">
                     <span className="text-white font-semibold text-sm">
                       {user?.name?.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="text-sm">
-                    <p className="font-semibold tracking-tight text-neutral-900">{user?.name}</p>
-                    <p className="text-xs text-neutral-500">{user?.role}</p>
+                    <p className="font-semibold tracking-tight text-ink-strong">{user?.name}</p>
+                    <p className="text-xs text-ink-muted">{user?.role}</p>
                   </div>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="px-3 py-1.5 text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-xl transition-all duration-150"
+                  className="px-3 py-1.5 text-sm font-medium text-ink-muted hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                 >
                   Logout
                 </button>
@@ -287,13 +329,14 @@ export function Header() {
               <>
                 <Link
                   to="/login"
-                  className="px-3 py-1.5 text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-xl transition-all duration-150"
+                  className="px-3 py-1.5 text-sm font-medium text-ink-strong hover:text-emerald-700 hover:bg-surface-tint rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl transition-all duration-150 shadow-sm shadow-emerald-600/25 ring-1 ring-inset ring-emerald-700/20"
+                  className="px-4 py-2 text-sm font-semibold text-white rounded-xl shadow-sm shadow-emerald-600/30 ring-1 ring-inset ring-white/20 hover:shadow-md hover:-translate-y-px active:translate-y-0 transition-all duration-150 ease-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                  style={{ backgroundImage: 'var(--gradient-brand)' }}
                 >
                   Register
                 </Link>
@@ -310,11 +353,11 @@ export function Header() {
                     ? `Notifications, ${unreadCount} unread`
                     : 'Notifications'
                 }
-                className="relative p-2 rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70 transition-colors"
+                className="relative p-2.5 rounded-xl text-ink-muted hover:text-emerald-700 hover:bg-surface-tint/70 ring-1 ring-inset ring-transparent hover:ring-emerald-600/15 transition-all duration-150"
               >
                 <BellIcon className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[11px] font-semibold flex items-center justify-center ring-2 ring-white shadow-sm">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[11px] font-semibold flex items-center justify-center ring-2 ring-white shadow-sm">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
@@ -322,7 +365,7 @@ export function Header() {
             )}
             <button
               type="button"
-              className="p-2 rounded-xl text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70 transition-colors"
+              className="p-2.5 rounded-xl text-ink-muted hover:text-ink-strong hover:bg-surface-tint ring-1 ring-inset ring-transparent hover:ring-border-strong transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
               aria-expanded={mobileMenuOpen}
@@ -345,16 +388,16 @@ export function Header() {
         aria-label="Mobile navigation"
         className={cn('lg:hidden', mobileMenuOpen ? 'block' : 'hidden')}
       >
-        <div className="px-4 pt-3 pb-5 space-y-1.5 border-t border-neutral-200/70 bg-white/95 backdrop-blur-md">
+        <div className="px-4 pt-3 pb-5 space-y-1.5 border-t border-border-subtle/80 bg-surface/95 backdrop-blur-md">
           {visibleNavItems.map((item) => (
             <Link
               key={item.label}
               to={item.href}
               className={cn(
-                'block px-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
+                'block px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150',
                 isActive(item.href)
-                  ? 'text-emerald-700 bg-emerald-50 ring-1 ring-inset ring-emerald-600/15'
-                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                  ? 'text-emerald-700 bg-surface-tint ring-1 ring-inset ring-emerald-600/20'
+                  : 'text-ink hover:text-ink-strong hover:bg-surface-tint'
               )}
             >
               {item.label}
@@ -363,21 +406,21 @@ export function Header() {
           {isAuthenticated && (
             <Link
               to="/notifications"
-              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
+              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-ink hover:text-ink-strong hover:bg-surface-tint transition-colors duration-150"
             >
               <span>Notifications</span>
               {unreadCount > 0 && (
-                <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-semibold flex items-center justify-center">
+                <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-red-600 text-white text-[11px] font-semibold flex items-center justify-center">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
             </Link>
           )}
-          <div className="pt-3 border-t border-neutral-200">
+          <div className="pt-3 border-t border-border-subtle">
             {isAuthenticated ? (
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
+                className="w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium text-ink-muted hover:text-red-700 hover:bg-red-50 transition-colors duration-150"
               >
                 Logout ({user?.name})
               </button>
@@ -385,13 +428,14 @@ export function Header() {
               <div className="space-y-2 px-3">
                 <Link
                   to="/login"
-                  className="block text-center px-4 py-2.5 text-sm font-medium text-neutral-700 border border-neutral-300 rounded-xl hover:border-neutral-400 hover:bg-neutral-50 transition-colors"
+                  className="block text-center px-4 py-2.5 text-sm font-medium text-ink-strong border border-border-strong rounded-xl hover:border-emerald-600 hover:bg-surface-tint transition-colors duration-150"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="block text-center px-4 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-600/25"
+                  className="block text-center px-4 py-2.5 text-sm font-semibold text-white rounded-xl shadow-sm shadow-emerald-600/30 ring-1 ring-inset ring-white/20 transition-all duration-150 hover:shadow-md"
+                  style={{ backgroundImage: 'var(--gradient-brand)' }}
                 >
                   Register
                 </Link>
