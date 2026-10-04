@@ -39,6 +39,13 @@ function validateInput(input: ResourceInput): void {
   if (typeof input.subjectId !== 'string' || input.subjectId.trim().length === 0) {
     throw new Error('Subject is required')
   }
+  const fileStringFields = [input.fileName, input.originalFileName, input.filePath, input.fileMimeType]
+  if (fileStringFields.some((value) => value !== undefined && value !== null && typeof value !== 'string')) {
+    throw new Error('Invalid file metadata')
+  }
+  if (input.fileSize !== undefined && input.fileSize !== null && typeof input.fileSize !== 'number') {
+    throw new Error('Invalid file metadata')
+  }
 }
 
 async function assertSubjectExists(subjectId: string): Promise<void> {

@@ -19,6 +19,10 @@ export async function uploadFile(file: File): Promise<UploadedFile> {
   })
 }
 
+export async function deleteUpload(storedFileName: string): Promise<void> {
+  await apiFetch(`/uploads/${encodeURIComponent(storedFileName)}`, { method: 'DELETE' })
+}
+
 export function resolveUploadUrl(path: string): string {
   if (/^https?:\/\//i.test(path)) return path
   const normalized = path.replace(/\\/g, '/')

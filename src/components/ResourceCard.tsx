@@ -25,7 +25,9 @@ export function ResourceCard({ resource }: ResourceCardProps) {
       <div className="flex items-center justify-between gap-3 mb-4 min-w-0">
         <ResourceTypeBadge type={resource.resourceType} />
         {resource.subject && (
-          <span className="text-xs text-ink-muted truncate min-w-0">{resource.subject.code}</span>
+          <span className="text-xs text-ink-muted truncate min-w-0">
+            {resource.subject.code} · {resource.subject.name}
+          </span>
         )}
       </div>
 

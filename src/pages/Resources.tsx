@@ -4,12 +4,23 @@ import { ResourceGrid } from '../components/ResourceGrid'
 import { ResourceFilters } from '../components/ResourceFilters'
 import { FileUpload } from '../components/FileUpload'
 import { Button } from '../components/Button'
-import { getResources } from '../services/resources'
+import { getResources, createResource } from '../services/resources'
 import { getSubjects } from '../services/subjects'
-import { uploadFile } from '../services/uploads'
+import { uploadFile, deleteUpload } from '../services/uploads'
 import { useAuth } from '../hooks/useAuth'
 import type { StudyResource, ResourceType } from '../types/resource'
 import type { Subject } from '../types/subject'
+
+const inputClassName =
+  'w-full px-3 py-2.5 border border-border-subtle rounded-control text-sm bg-surface text-ink-strong placeholder:text-ink-muted transition-colors duration-150 hover:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500'
+
+const RESOURCE_TYPE_LABELS: Record<ResourceType, string> = {
+  NOTE: 'Lecture Note',
+  STUDY_GUIDE: 'Study Guide',
+  PRESENTATION: 'Presentation',
+  REFERENCE: 'Reference',
+  OTHER: 'Other',
+}
 
 export function Resources() {
   const { user } = useAuth()
@@ -23,6 +34,10 @@ export function Resources() {
   const [uploadFile_, setUploadFile_] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
+  const [resourceTitle, setResourceTitle] = useState('')
+  const [resourceSubjectId, setResourceSubjectId] = useState('')
+  const [resourceType, setResourceType] = useState<ResourceType>('NOTE')
+  const [resourceDescription, setResourceDescription] = useState('')
 
   const isAdmin = user?.role === 'ADMIN'
 
@@ -57,15 +72,39 @@ export function Resources() {
   async function handleUpload() {
     if (!uploadFile_) return
 
+    const subjectId = resourceSubjectId || selectedSubject
+    if (!subjectId) {
+      setUploadError('Subject is required')
+      return
+    }
+
     setIsUploading(true)
     setUploadError('')
 
+    let uploaded: Awaited<ReturnType<typeof uploadFile>> | null = null
     try {
-      await uploadFile(uploadFile_)
+      uploaded = await uploadFile(uploadFile_)
+      await createResource({
+        title: resourceTitle.trim() || uploaded.originalFileName,
+        description: resourceDescription.trim() || null,
+        subjectId,
+        resourceType,
+        fileName: uploaded.storedFileName,
+        originalFileName: uploaded.originalFileName,
+        filePath: uploaded.storedFileName,
+        fileMimeType: uploaded.mimeType,
+        fileSize: uploaded.size,
+      })
       setShowUploadForm(false)
       setUploadFile_(null)
+      setResourceTitle('')
+      setResourceDescription('')
+      setResourceSubjectId('')
       getResources(selectedSubject || undefined).then(setResources).catch(() => {})
     } catch (err) {
+      if (uploaded) {
+        await deleteUpload(uploaded.storedFileName).catch(() => {})
+      }
       setUploadError(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setIsUploading(false)
@@ -88,12 +127,74 @@ export function Resources() {
       {showUploadForm && isAdmin && (
         <div className="bg-surface rounded-card border border-border-subtle p-6 mb-6 shadow-card ease-smooth">
           <h3 className="font-semibold text-ink-strong mb-4">Upload Study Resource</h3>
-          <FileUpload
-            onFileSelect={setUploadFile_}
-            onFileRemove={() => setUploadFile_(null)}
-            isUploading={isUploading}
-            error={uploadError}
-          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label className="block sm:col-span-2">
+              <span className="text-sm font-medium text-ink-muted">Title</span>
+              <input
+                type="text"
+                value={resourceTitle}
+                onChange={(e) => setResourceTitle(e.target.value)}
+                maxLength={200}
+                className={`mt-1 ${inputClassName}`}
+                placeholder="Defaults to the filename"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-ink-muted">Subject</span>
+              <select
+                value={resourceSubjectId || selectedSubject}
+                onChange={(e) => setResourceSubjectId(e.target.value)}
+                className={`mt-1 ${inputClassName}`}
+              >
+                <option value="">Select a subject</option>
+                {subjects.map((subject) => (
+                  <option key={subject.id} value={subject.id}>
+                    {subject.name} ({subject.code})
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-ink-muted">Resource type</span>
+              <select
+                value={resourceType}
+                onChange={(e) => setResourceType(e.target.value as ResourceType)}
+                className={`mt-1 ${inputClassName}`}
+              >
+                {(Object.keys(RESOURCE_TYPE_LABELS) as ResourceType[]).map((type) => (
+                  <option key={type} value={type}>
+                    {RESOURCE_TYPE_LABELS[type]}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block sm:col-span-2">
+              <span className="text-sm font-medium text-ink-muted">
+                Description <span className="text-ink-muted font-normal">(optional)</span>
+              </span>
+              <textarea
+                value={resourceDescription}
+                onChange={(e) => setResourceDescription(e.target.value)}
+                maxLength={5000}
+                rows={3}
+                className={`mt-1 ${inputClassName}`}
+                placeholder="What this resource covers"
+              />
+            </label>
+          </div>
+
+          <div className="mt-4">
+            <FileUpload
+              onFileSelect={setUploadFile_}
+              onFileRemove={() => setUploadFile_(null)}
+              isUploading={isUploading}
+              error={uploadError}
+            />
+          </div>
           <div className="mt-4 flex justify-end">
             <Button
               variant="primary"
