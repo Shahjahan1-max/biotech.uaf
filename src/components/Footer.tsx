@@ -1,4 +1,9 @@
+import { useFounderSettings } from '../hooks/useFounderSettings'
+import { FounderAvatar } from './FounderAvatar'
+
 export function Footer() {
+  const { settings, imageUrl, isLoading } = useFounderSettings()
+
   return (
     <footer className="relative overflow-hidden bg-surface-deep mt-auto">
       <div
@@ -66,6 +71,38 @@ export function Footer() {
             Academic Learning Platform
           </p>
         </div>
+
+        {(isLoading || settings) && (
+          <div className="mt-6 border-t border-white/10 pt-5">
+            {isLoading && (
+              <div className="flex items-center gap-3 animate-pulse" aria-hidden="true">
+                <span className="w-11 h-11 rounded-full bg-white/10" />
+                <span className="flex flex-col gap-2">
+                  <span className="h-2.5 w-16 rounded bg-white/10" />
+                  <span className="h-3 w-28 rounded bg-white/10" />
+                </span>
+              </div>
+            )}
+
+            {!isLoading && settings && (
+              <div className="flex items-center gap-3">
+                <FounderAvatar
+                  key={imageUrl ?? 'fallback'}
+                  imageUrl={imageUrl}
+                  name={settings.founderName}
+                />
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-cyan-300/90">
+                    Founder
+                  </p>
+                  <p className="text-sm font-medium text-white mt-0.5">
+                    {settings.founderName}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </footer>
   )

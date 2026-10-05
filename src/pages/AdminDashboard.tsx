@@ -5,6 +5,7 @@ import { SectionHeader } from '../components/SectionHeader'
 import { StatCard } from '../components/StatCard'
 import { Button } from '../components/Button'
 import { Spinner } from '../components/Spinner'
+import { FounderSettingsForm } from '../components/FounderSettingsForm'
 import { AnnouncementPriorityBadge } from '../components/AnnouncementPriorityBadge'
 import { AnnouncementTypeBadge } from '../components/AnnouncementTypeBadge'
 import { useAuth } from '../hooks/useAuth'
@@ -301,6 +302,14 @@ export function AdminDashboard() {
             </Card>
           </div>
         )}
+      </section>
+
+      <section className="mb-8">
+        <SectionHeader
+          title="Founder / Website Footer"
+          subtitle="Control the founder name and photo shown in the global footer"
+        />
+        <FounderSettingsForm />
       </section>
 
       <section>

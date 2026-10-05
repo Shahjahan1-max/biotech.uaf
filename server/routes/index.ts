@@ -9,6 +9,7 @@ import { discussionRoutes } from './discussions.js'
 import { announcementRoutes } from './announcements.js'
 import { adminRoutes } from './admin.js'
 import notificationRoutes from './notifications.js'
+import { settingsRoutes } from './settings.js'
 
 export const routes = Router()
 
@@ -26,3 +27,4 @@ routes.use('/discussions', discussionRoutes)
 routes.use('/announcements', announcementRoutes)
 routes.use('/admin', adminRoutes)
 routes.use('/notifications', notificationRoutes)
+routes.use('/settings', settingsRoutes)
