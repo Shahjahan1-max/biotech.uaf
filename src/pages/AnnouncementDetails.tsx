@@ -149,6 +149,11 @@ export function AnnouncementDetails() {
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 <AnnouncementTypeBadge type={announcement.type} />
                 <AnnouncementPriorityBadge priority={announcement.priority} />
+                {!announcement.subject && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium tracking-wide bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/15">
+                    General
+                  </span>
+                )}
                 {announcement.isExpired && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-600 border border-neutral-200">
                     Expired

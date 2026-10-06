@@ -53,6 +53,7 @@ export interface Announcement {
 
 export interface AnnouncementListFilters {
   subjectId?: string
+  scope?: string
   type?: string
   priority?: string
   search?: string

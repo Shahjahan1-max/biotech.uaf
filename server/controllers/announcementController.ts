@@ -24,6 +24,7 @@ function readFilters(query: Record<string, unknown>): AnnouncementListFilters {
 
   return {
     subjectId: optionalQuery(query.subjectId as string),
+    scope: optionalQuery(query.scope as string),
     type: optionalQuery(query.type as string),
     priority: optionalQuery(query.priority as string),
     search: optionalQuery(query.search as string),

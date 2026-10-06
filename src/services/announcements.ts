@@ -10,6 +10,7 @@ function buildQuery(filters: AnnouncementListFilters): string {
   const params = new URLSearchParams()
 
   if (filters.subjectId) params.set('subjectId', filters.subjectId)
+  if (filters.scope) params.set('scope', filters.scope)
   if (filters.type) params.set('type', filters.type)
   if (filters.priority) params.set('priority', filters.priority)
   if (filters.search) params.set('search', filters.search)

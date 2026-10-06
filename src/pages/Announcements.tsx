@@ -66,8 +66,12 @@ export function Announcements() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const subjectParam = searchParams.get('subjectId') ?? ''
+  const scopeParam = searchParams.get('scope') ?? ''
+  const validScope = scopeParam === 'general' || scopeParam === 'subject' ? scopeParam : ''
   const [lastSubjectParam, setLastSubjectParam] = useState(subjectParam)
   const [selectedSubject, setSelectedSubject] = useState(subjectParam)
+  const [lastScopeParam, setLastScopeParam] = useState(validScope)
+  const [selectedScope, setSelectedScope] = useState(validScope)
   const [selectedType, setSelectedType] = useState('')
   const [selectedPriority, setSelectedPriority] = useState('')
   const [includeExpired, setIncludeExpired] = useState(false)
@@ -84,6 +88,12 @@ export function Announcements() {
     setPage(1)
   }
 
+  if (lastScopeParam !== validScope) {
+    setLastScopeParam(validScope)
+    setSelectedScope(validScope)
+    setPage(1)
+  }
+
   useEffect(() => {
     getSubjects().then(setSubjects).catch(() => {})
   }, [])
@@ -95,6 +105,7 @@ export function Announcements() {
 
     listAnnouncements({
       subjectId: selectedSubject || undefined,
+      scope: selectedScope || undefined,
       type: selectedType || undefined,
       priority: selectedPriority || undefined,
       search: search || undefined,
@@ -117,7 +128,7 @@ export function Announcements() {
     return () => {
       active = false
     }
-  }, [selectedSubject, selectedType, selectedPriority, search, includeExpired, isAdmin, page, refreshKey])
+  }, [selectedSubject, selectedScope, selectedType, selectedPriority, search, includeExpired, isAdmin, page, refreshKey])
 
   function refresh() {
     setRefreshKey((key) => key + 1)
@@ -172,7 +183,7 @@ export function Announcements() {
   }
 
   const formOpen = isAdmin && (showForm || editing !== null)
-  const hasFilters = Boolean(search || selectedSubject || selectedType || selectedPriority)
+  const hasFilters = Boolean(search || selectedSubject || selectedScope || selectedType || selectedPriority)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -207,7 +218,7 @@ export function Announcements() {
         />
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <form onSubmit={handleSearch} className="block lg:col-span-1">
           <label htmlFor="announcement-search" className="text-sm font-medium text-neutral-600">Search</label>
           <div className="mt-1 flex gap-2">
@@ -248,6 +259,19 @@ export function Announcements() {
                 {subject.code} — {subject.name}
               </option>
             ))}
+          </select>
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium text-neutral-600">Scope</span>
+          <select
+            value={selectedScope}
+            onChange={(e) => resetPageAnd(setSelectedScope)(e.target.value)}
+            className={`mt-1 ${inputClassName}`}
+          >
+            <option value="">All Announcements</option>
+            <option value="general">General (no subject)</option>
+            <option value="subject">Subject-specific</option>
           </select>
         </label>
 
@@ -384,6 +408,7 @@ export function Announcements() {
                   </Link>
                   <AnnouncementTypeBadge type={announcement.type} />
                   <AnnouncementPriorityBadge priority={announcement.priority} />
+                  {!announcement.subject && <Badge variant="emerald">General</Badge>}
                   {announcement.subject && (
                     <Badge variant="teal">
                       {announcement.subject.code} — {announcement.subject.name}

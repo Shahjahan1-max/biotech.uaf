@@ -210,6 +210,15 @@ export async function getAnnouncements(
     clauses.push({ subjectId: filters.subjectId.trim() })
   }
 
+  if (filters.scope !== undefined && filters.scope !== '') {
+    if (filters.scope !== 'general' && filters.scope !== 'subject') {
+      throw new AnnouncementValidationError('Scope must be general or subject')
+    }
+    clauses.push(
+      filters.scope === 'general' ? { subjectId: null } : { subjectId: { not: null } }
+    )
+  }
+
   if (filters.type !== undefined && filters.type !== '') {
     if (!isAnnouncementType(filters.type)) {
       throw new AnnouncementValidationError('Type must be a valid announcement type')
