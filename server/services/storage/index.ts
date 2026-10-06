@@ -1,7 +1,14 @@
-import { promises as fs } from 'fs'
+import { promises as fs, createReadStream } from 'fs'
 import path from 'path'
 import crypto from 'crypto'
+import type { Readable } from 'stream'
 import { config } from '../../config/env.js'
+import { CloudinaryStorageService } from './cloudinary.js'
+import {
+  ALLOWED_MIME_TYPES,
+  isValidStoredName,
+  mimeTypeFromExt,
+} from './common.js'
 
 export interface StoredFile {
   id: string
@@ -12,31 +19,17 @@ export interface StoredFile {
   path: string
 }
 
+export interface ReadableFile {
+  mimeType: string
+  stream: Readable
+}
+
 export interface StorageService {
   save(file: Express.Multer.File): Promise<StoredFile>
   get(storedFileName: string): Promise<{ path: string; mimeType: string } | null>
+  openRead(storedFileName: string): Promise<ReadableFile | null>
   delete(storedFileName: string): Promise<boolean>
   getUrl(storedFileName: string): string
-}
-
-const ALLOWED_MIME_TYPES: Record<string, string> = {
-  'application/pdf': '.pdf',
-  'application/msword': '.doc',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
-  'application/vnd.ms-powerpoint': '.ppt',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
-  'application/vnd.ms-excel': '.xls',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
-  'text/plain': '.txt',
-  'image/png': '.png',
-  'image/jpeg': '.jpg',
-}
-
-const STORED_NAME_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]{1,10}$/i
-
-function isValidStoredName(storedFileName: string): boolean {
-  return STORED_NAME_PATTERN.test(storedFileName)
 }
 
 function resolveUploadPath(uploadDir: string, storedFileName: string): string | null {
@@ -116,13 +109,18 @@ export class LocalStorageService implements StorageService {
       if (!stats.isFile()) return null
 
       const ext = path.extname(filePath).toLowerCase()
-      const mimeType =
-        Object.entries(ALLOWED_MIME_TYPES).find(([, e]) => e === ext)?.[0] ||
-        'application/octet-stream'
+      const mimeType = mimeTypeFromExt(ext) || 'application/octet-stream'
       return { path: filePath, mimeType }
     } catch {
       return null
     }
+  }
+
+  async openRead(storedFileName: string): Promise<ReadableFile | null> {
+    const file = await this.get(storedFileName)
+    if (!file) return null
+
+    return { mimeType: file.mimeType, stream: createReadStream(file.path) }
   }
 
   async delete(storedFileName: string): Promise<boolean> {
@@ -142,4 +140,27 @@ export class LocalStorageService implements StorageService {
   }
 }
 
-export const storageService = new LocalStorageService()
+function isCloudConfigured(): boolean {
+  const { cloudName, apiKey, apiSecret } = config.cloudinary
+  const provided = [cloudName, apiKey, apiSecret].filter(Boolean).length
+
+  if (provided > 0 && provided < 3) {
+    throw new Error(
+      'Cloud storage configuration is incomplete: set CLOUDINARY_URL (cloudinary://<api_key>:<api_secret>@<cloud_name>) or all of CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET.'
+    )
+  }
+
+  if (provided === 0 && config.nodeEnv === 'production') {
+    console.warn(
+      '[storage] CLOUDINARY_URL is not set: uploads use the local filesystem and will be lost on restart or redeploy.'
+    )
+  }
+
+  return provided === 3
+}
+
+const localFallback = new LocalStorageService()
+
+export const storageService: StorageService = isCloudConfigured()
+  ? new CloudinaryStorageService(config.cloudinary, localFallback)
+  : localFallback

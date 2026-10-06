@@ -34,15 +34,19 @@ export async function uploadFile(req: Request, res: Response) {
       size: stored.size,
       url: storageService.getUrl(stored.storedFileName),
     })
-  } catch {
-    res.status(500).json({ error: 'Upload failed' })
+  } catch (error) {
+    console.error(
+      '[upload] Failed to store file:',
+      error instanceof Error ? error.message : 'unknown error'
+    )
+    res.status(500).json({ error: 'Upload failed: the file could not be stored' })
   }
 }
 
 export async function getFile(req: Request, res: Response) {
   try {
     const { filename } = req.params
-    const file = await storageService.get(filename)
+    const file = await storageService.openRead(filename)
 
     if (!file) {
       res.status(404).json({ error: 'File not found' })
@@ -53,16 +57,14 @@ export async function getFile(req: Request, res: Response) {
     res.setHeader('Content-Type', file.mimeType)
     res.setHeader('Content-Disposition', `inline; filename="${safeName}"`)
 
-    const { createReadStream } = await import('fs')
-    const stream = createReadStream(file.path)
-    stream.on('error', () => {
+    file.stream.on('error', () => {
       if (res.headersSent) {
         res.destroy()
       } else {
         res.status(500).json({ error: 'Failed to retrieve file' })
       }
     })
-    stream.pipe(res)
+    file.stream.pipe(res)
   } catch {
     if (!res.headersSent) {
       res.status(500).json({ error: 'Failed to retrieve file' })

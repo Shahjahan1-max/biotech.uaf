@@ -58,12 +58,20 @@ with a role-based admin dashboard.
    JWT_EXPIRES_IN="7d"
    FRONTEND_URL="http://localhost:5173"
    UPLOAD_DIR="uploads"
+   CLOUDINARY_URL="cloudinary://<api_key>:<api_secret>@<cloud_name>"
+   CLOUDINARY_FOLDER="biotech"
    MAX_FILE_SIZE="10485760"
    VITE_API_URL="http://localhost:3001/api"
    ```
 
    `JWT_SECRET` must be a long random value (32+ characters). The server refuses to
    start in production with a missing, short, or default secret. Never commit `.env`.
+
+   `CLOUDINARY_URL` enables **persistent object storage** (Cloudinary) for uploads.
+   Set it in production so uploaded files (founder image, resources) survive restarts
+   and redeploys; without it, files are stored in `UPLOAD_DIR` on the local disk,
+   which is fine for local development but is lost whenever the server is redeployed.
+   `CLOUDINARY_FOLDER` is optional and organizes files in your Cloudinary media library.
 
 3. **Create the database and run migrations**
 
