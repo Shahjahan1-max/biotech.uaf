@@ -32,6 +32,7 @@ export interface NotificationRecord {
   title: string
   message: string
   link: string | null
+  isRead: boolean
   readAt: Date | null
   createdAt: Date
 }
@@ -57,6 +58,7 @@ function toNotification(record: {
   title: string
   message: string
   link: string | null
+  isRead: boolean
   readAt: Date | null
   createdAt: Date
 }): NotificationRecord {
@@ -66,6 +68,7 @@ function toNotification(record: {
     title: record.title,
     message: record.message,
     link: record.link,
+    isRead: record.isRead,
     readAt: record.readAt,
     createdAt: record.createdAt,
   }
@@ -77,6 +80,7 @@ const notificationSelect = {
   title: true,
   message: true,
   link: true,
+  isRead: true,
   readAt: true,
   createdAt: true,
 } as const
@@ -103,6 +107,13 @@ export async function createNotification(
   userId: string,
   input: NotificationInput
 ): Promise<void> {
+  const target = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true },
+  })
+  if (!target) {
+    throw new NotificationValidationError('Target user not found')
+  }
   await createNotificationsForUsers([userId], input)
 }
 
@@ -172,12 +183,12 @@ export async function getUserNotifications(
 
   const where = {
     userId,
-    ...(filters.unreadOnly ? { readAt: null } : {}),
+    ...(filters.unreadOnly ? { isRead: false } : {}),
   }
 
   const [total, unreadCount, records] = await Promise.all([
     prisma.notification.count({ where }),
-    prisma.notification.count({ where: { userId, readAt: null } }),
+    prisma.notification.count({ where: { userId, isRead: false } }),
     prisma.notification.findMany({
       where,
       select: notificationSelect,
@@ -198,25 +209,25 @@ export async function getUserNotifications(
 }
 
 export async function getUnreadNotificationCount(userId: string): Promise<number> {
-  return prisma.notification.count({ where: { userId, readAt: null } })
+  return prisma.notification.count({ where: { userId, isRead: false } })
 }
 
 export async function markNotificationAsRead(id: string, userId: string): Promise<void> {
   const existing = await prisma.notification.findUnique({ where: { id } })
   if (!existing || existing.userId !== userId) throw new NotificationNotFoundError()
 
-  if (existing.readAt) return
+  if (existing.isRead) return
 
   await prisma.notification.update({
     where: { id },
-    data: { readAt: new Date() },
+    data: { isRead: true, readAt: new Date() },
   })
 }
 
 export async function markAllNotificationsAsRead(userId: string): Promise<void> {
   await prisma.notification.updateMany({
-    where: { userId, readAt: null },
-    data: { readAt: new Date() },
+    where: { userId, isRead: false },
+    data: { isRead: true, readAt: new Date() },
   })
 }
 

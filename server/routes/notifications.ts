@@ -15,7 +15,9 @@ router.use(requireAuth)
 router.get('/', listNotifications)
 router.get('/unread-count', getUnreadCount)
 router.put('/read-all', markAllAsRead)
+router.patch('/read-all', markAllAsRead)
 router.put('/:id/read', markAsRead)
+router.patch('/:id/read', markAsRead)
 router.delete('/:id', removeNotification)
 
 export default router
