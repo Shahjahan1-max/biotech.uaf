@@ -28,8 +28,8 @@ export function handleServiceError(res: Response, error: unknown, fallback: stri
   }
 
   if (error instanceof Error && error.name !== 'TypeError' && !(error instanceof SyntaxError)) {
-    if (error.message === 'Email already registered') {
-      res.status(409).json({ error: 'Email already registered' })
+    if (error.message === 'Username already registered') {
+      res.status(409).json({ error: 'Username already registered' })
       return
     }
     if (NOT_FOUND_MESSAGES.includes(error.message)) {

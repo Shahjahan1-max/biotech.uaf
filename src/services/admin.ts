@@ -1,6 +1,7 @@
 import { apiFetch } from './api'
 import type {
   AdminDashboardData,
+  AdminStudent,
   AdminStudentFilters,
   PaginatedAdminStudents,
 } from '../types/admin'
@@ -20,4 +21,18 @@ export async function listAdminStudents(
 
   const query = params.toString()
   return apiFetch<PaginatedAdminStudents>(`/admin/students${query ? `?${query}` : ''}`)
+}
+
+export async function updateAdminStudentUsername(
+  id: string,
+  username: string
+): Promise<AdminStudent> {
+  const data = await apiFetch<{ student: AdminStudent }>(
+    `/admin/students/${encodeURIComponent(id)}/username`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ username }),
+    }
+  )
+  return data.student
 }

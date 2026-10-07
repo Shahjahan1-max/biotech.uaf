@@ -9,12 +9,12 @@ const SALT_ROUNDS = 12
 
 export async function registerUser(input: RegisterInput): Promise<AuthUser> {
   const existingUser = await prisma.user.findUnique({
-    where: { email: input.email },
+    where: { username: input.username },
     select: { id: true },
   })
 
   if (existingUser) {
-    throw new Error('Email already registered')
+    throw new Error('Username already registered')
   }
 
   const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS)
@@ -30,7 +30,7 @@ export async function registerUser(input: RegisterInput): Promise<AuthUser> {
   const user = await prisma.user.create({
     data: {
       name: input.name,
-      email: input.email,
+      username: input.username,
       passwordHash,
       roleId: studentRole.id,
     },
@@ -39,7 +39,7 @@ export async function registerUser(input: RegisterInput): Promise<AuthUser> {
 
   return {
     id: user.id,
-    email: user.email,
+    username: user.username,
     name: user.name,
     role: user.role.name,
   }
@@ -47,23 +47,23 @@ export async function registerUser(input: RegisterInput): Promise<AuthUser> {
 
 export async function loginUser(input: LoginInput): Promise<AuthUser> {
   const user = await prisma.user.findUnique({
-    where: { email: input.email },
+    where: { username: input.username },
     include: { role: true },
   })
 
   if (!user) {
-    throw new Error('Invalid email or password')
+    throw new Error('Invalid username or password')
   }
 
   const isValid = await bcrypt.compare(input.password, user.passwordHash)
 
   if (!isValid) {
-    throw new Error('Invalid email or password')
+    throw new Error('Invalid username or password')
   }
 
   return {
     id: user.id,
-    email: user.email,
+    username: user.username,
     name: user.name,
     role: user.role.name,
   }
@@ -86,7 +86,7 @@ export async function getUserById(userId: string): Promise<AuthUser | null> {
     where: { id: userId },
     select: {
       id: true,
-      email: true,
+      username: true,
       name: true,
       role: { select: { name: true } },
     },
@@ -96,7 +96,7 @@ export async function getUserById(userId: string): Promise<AuthUser | null> {
 
   return {
     id: user.id,
-    email: user.email,
+    username: user.username,
     name: user.name,
     role: user.role.name,
   }

@@ -7,3 +7,4 @@ export const adminRoutes = Router()
 
 adminRoutes.get('/dashboard', requireAuth, requireRole('ADMIN'), adminDashboardController.getDashboard)
 adminRoutes.get('/students', requireAuth, requireRole('ADMIN'), adminStudentController.getStudents)
+adminRoutes.patch('/students/:id/username', requireAuth, requireRole('ADMIN'), adminStudentController.updateStudentUsername)

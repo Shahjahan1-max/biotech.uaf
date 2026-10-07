@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { SectionHeader } from '../components/SectionHeader'
-import { listAdminStudents } from '../services/admin'
+import { listAdminStudents, updateAdminStudentUsername } from '../services/admin'
 import type { AdminStudent, PaginatedAdminStudents } from '../types/admin'
 
 const inputClassName =
@@ -26,6 +26,10 @@ export function AdminStudents() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [editId, setEditId] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState('')
+  const [editError, setEditError] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -63,6 +67,35 @@ export function AdminStudents() {
     setPage(1)
     setSearch('')
     refresh()
+  }
+
+  function startEdit(student: AdminStudent) {
+    if (isSaving) return
+    setEditId(student.id)
+    setEditValue(student.username)
+    setEditError('')
+  }
+
+  function cancelEdit() {
+    if (isSaving) return
+    setEditId(null)
+    setEditError('')
+  }
+
+  async function saveEdit(student: AdminStudent) {
+    if (isSaving) return
+    setIsSaving(true)
+    setEditError('')
+
+    try {
+      await updateAdminStudentUsername(student.id, editValue)
+      setEditId(null)
+      refresh()
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : 'Failed to update Student ID.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -163,6 +196,7 @@ export function AdminStudents() {
                 <thead>
                   <tr className="text-left text-xs text-neutral-400 border-b border-neutral-200 bg-neutral-50">
                     <th className="py-3 px-5 font-medium">Name</th>
+                    <th className="py-3 px-5 font-medium">Username / Student ID</th>
                     <th className="py-3 px-5 font-medium">Email</th>
                     <th className="py-3 px-5 font-medium">Role</th>
                     <th className="py-3 px-5 font-medium">Registered</th>
@@ -175,6 +209,19 @@ export function AdminStudents() {
                       className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50 transition-colors"
                     >
                       <td className="py-3 px-5 font-medium text-neutral-900">{student.name}</td>
+                      <td className="py-3 px-5 text-neutral-900">
+                        <UsernameEditor
+                          student={student}
+                          editing={editId === student.id}
+                          value={editValue}
+                          error={editId === student.id ? editError : ''}
+                          isSaving={isSaving}
+                          onStart={startEdit}
+                          onChange={setEditValue}
+                          onSave={saveEdit}
+                          onCancel={cancelEdit}
+                        />
+                      </td>
                       <td className="py-3 px-5 text-neutral-600">{student.email}</td>
                       <td className="py-3 px-5">
                         <Badge variant={student.role === 'ADMIN' ? 'amber' : 'emerald'}>
@@ -200,6 +247,19 @@ export function AdminStudents() {
                     <Badge variant={student.role === 'ADMIN' ? 'amber' : 'emerald'}>
                       {student.role === 'ADMIN' ? 'Admin' : 'Student'}
                     </Badge>
+                  </div>
+                  <div className="mt-1.5">
+                    <UsernameEditor
+                      student={student}
+                      editing={editId === student.id}
+                      value={editValue}
+                      error={editId === student.id ? editError : ''}
+                      isSaving={isSaving}
+                      onStart={startEdit}
+                      onChange={setEditValue}
+                      onSave={saveEdit}
+                      onCancel={cancelEdit}
+                    />
                   </div>
                   <p className="text-sm text-neutral-600 break-all">{student.email}</p>
                   <p className="text-xs text-neutral-500 mt-1">
@@ -232,6 +292,93 @@ export function AdminStudents() {
           </div>
         </>
       )}
+    </div>
+  )
+}
+
+interface UsernameEditorProps {
+  student: AdminStudent
+  editing: boolean
+  value: string
+  error: string
+  isSaving: boolean
+  onStart: (student: AdminStudent) => void
+  onChange: (value: string) => void
+  onSave: (student: AdminStudent) => void
+  onCancel: () => void
+}
+
+function UsernameEditor({
+  student,
+  editing,
+  value,
+  error,
+  isSaving,
+  onStart,
+  onChange,
+  onSave,
+  onCancel,
+}: UsernameEditorProps) {
+  if (!editing) {
+    return (
+      <span className="inline-flex items-center gap-1 flex-wrap">
+        <span className="break-all">{student.username}</span>
+        {student.role === 'STUDENT' && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="px-2"
+            onClick={() => onStart(student)}
+            disabled={isSaving}
+          >
+            Edit
+          </Button>
+        )}
+      </span>
+    )
+  }
+
+  return (
+    <div className="min-w-[12rem] max-w-xs">
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            onSave(student)
+          } else if (e.key === 'Escape') {
+            onCancel()
+          }
+        }}
+        autoFocus
+        maxLength={50}
+        aria-label="Student ID"
+        className={inputClassName}
+      />
+      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
+      <div className="flex gap-1 mt-1.5">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onSave(student)}
+          disabled={isSaving}
+        >
+          {isSaving ? 'Saving...' : 'Save'}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onCancel}
+          disabled={isSaving}
+        >
+          Cancel
+        </Button>
+      </div>
     </div>
   )
 }

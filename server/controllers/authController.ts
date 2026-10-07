@@ -4,10 +4,10 @@ import { config } from '../config/env.js'
 import { handleServiceError } from '../utils/handleServiceError.js'
 
 const MAX_NAME_LENGTH = 100
-const MAX_EMAIL_LENGTH = 254
+const MAX_USERNAME_LENGTH = 50
 const MIN_PASSWORD_LENGTH = 8
 const MAX_PASSWORD_LENGTH = 128
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const USERNAME_PATTERN = /^[A-Za-z0-9@._-]+$/
 
 function cookieMaxAge(): number {
   const match = /^(\d+)\s*(s|m|h|d)$/i.exec(config.jwtExpiresIn.trim())
@@ -30,15 +30,25 @@ function sessionCookieOptions() {
 
 export async function register(req: Request, res: Response) {
   try {
-    const { name, email, password } = req.body ?? {}
+    const { name, username, password } = req.body ?? {}
 
     if (typeof name !== 'string' || name.trim().length === 0 || name.length > MAX_NAME_LENGTH) {
       res.status(400).json({ error: 'Name is required and must be 100 characters or fewer' })
       return
     }
 
-    if (typeof email !== 'string' || email.length > MAX_EMAIL_LENGTH || !EMAIL_PATTERN.test(email.trim())) {
-      res.status(400).json({ error: 'A valid email address is required' })
+    if (typeof username !== 'string' || username.trim().length === 0) {
+      res.status(400).json({ error: 'Username is required' })
+      return
+    }
+
+    if (username.length > MAX_USERNAME_LENGTH) {
+      res.status(400).json({ error: 'Username must be 50 characters or fewer' })
+      return
+    }
+
+    if (!USERNAME_PATTERN.test(username.trim())) {
+      res.status(400).json({ error: 'Username may only contain letters, numbers, and @ . _ -' })
       return
     }
 
@@ -54,7 +64,7 @@ export async function register(req: Request, res: Response) {
 
     const user = await authService.registerUser({
       name: name.trim(),
-      email: email.trim().toLowerCase(),
+      username: username.trim(),
       password,
     })
 
@@ -66,20 +76,20 @@ export async function register(req: Request, res: Response) {
 
 export async function login(req: Request, res: Response) {
   try {
-    const { email, password } = req.body ?? {}
+    const { username, password } = req.body ?? {}
 
-    if (typeof email !== 'string' || email.trim().length === 0) {
-      res.status(400).json({ error: 'Email and password are required' })
+    if (typeof username !== 'string' || username.trim().length === 0) {
+      res.status(400).json({ error: 'Username and password are required' })
       return
     }
 
     if (typeof password !== 'string' || password.length === 0) {
-      res.status(400).json({ error: 'Email and password are required' })
+      res.status(400).json({ error: 'Username and password are required' })
       return
     }
 
     const user = await authService.loginUser({
-      email: email.trim().toLowerCase(),
+      username: username.trim(),
       password,
     })
     const token = authService.generateToken(user)
@@ -88,7 +98,7 @@ export async function login(req: Request, res: Response) {
 
     res.json({ user })
   } catch {
-    res.status(401).json({ error: 'Invalid email or password' })
+    res.status(401).json({ error: 'Invalid username or password' })
   }
 }
 

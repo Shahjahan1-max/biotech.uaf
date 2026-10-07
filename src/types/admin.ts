@@ -62,7 +62,8 @@ export interface AdminDashboardData {
 export interface AdminStudent {
   id: string
   name: string
-  email: string
+  username: string
+  email: string | null
   role: string
   createdAt: string
 }

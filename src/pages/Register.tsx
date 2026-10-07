@@ -10,7 +10,7 @@ const inputClassName =
 
 export function Register() {
   const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
@@ -21,6 +21,11 @@ export function Register() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError('')
+
+    if (username.trim().length === 0) {
+      setError('Username is required')
+      return
+    }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match')
@@ -35,7 +40,7 @@ export function Register() {
     setIsSubmitting(true)
 
     try {
-      await register({ name, email, password })
+      await register({ name, username, password })
       navigate('/login')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
@@ -88,18 +93,18 @@ export function Register() {
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-ink mb-1.5">
-            Email
+          <label htmlFor="username" className="block text-sm font-medium text-ink mb-1.5">
+            Student ID
           </label>
           <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            id="username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
-            autoComplete="email"
+            autoComplete="username"
             className={inputClassName}
-            placeholder="you@example.com"
+            placeholder="Your Student ID"
           />
         </div>
 

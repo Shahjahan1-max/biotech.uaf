@@ -1,9 +1,12 @@
+import { Prisma } from '@prisma/client'
 import { prisma } from '../utils/prisma.js'
 
 
 const SEARCH_MAX_LENGTH = 200
 const DEFAULT_LIMIT = 20
 const MAX_LIMIT = 100
+const MAX_USERNAME_LENGTH = 50
+const USERNAME_PATTERN = /^[A-Za-z0-9@._-]+$/
 
 export class AdminValidationError extends Error {
   constructor(message: string) {
@@ -15,7 +18,8 @@ export class AdminValidationError extends Error {
 export interface AdminStudent {
   id: string
   name: string
-  email: string
+  username: string
+  email: string | null
   role: string
   createdAt: Date
 }
@@ -72,6 +76,7 @@ export async function getStudents(
       select: {
         id: true,
         name: true,
+        username: true,
         email: true,
         role: { select: { name: true } },
         createdAt: true,
@@ -86,6 +91,7 @@ export async function getStudents(
     items: records.map((record) => ({
       id: record.id,
       name: record.name,
+      username: record.username,
       email: record.email,
       role: record.role.name,
       createdAt: record.createdAt,
@@ -94,5 +100,74 @@ export async function getStudents(
     limit,
     total,
     totalPages: Math.max(1, Math.ceil(total / limit)),
+  }
+}
+
+export async function updateStudentUsername(
+  studentId: string,
+  username: string
+): Promise<AdminStudent> {
+  if (typeof username !== 'string' || username.trim().length === 0) {
+    throw new AdminValidationError('Username is required')
+  }
+  if (username.length > MAX_USERNAME_LENGTH) {
+    throw new AdminValidationError('Username must be 50 characters or fewer')
+  }
+  if (!USERNAME_PATTERN.test(username.trim())) {
+    throw new AdminValidationError('Username may only contain letters, numbers, and @ . _ -')
+  }
+
+  const student = await prisma.user.findUnique({
+    where: { id: studentId },
+    select: { id: true, role: { select: { name: true } } },
+  })
+
+  if (!student) {
+    throw new Error('Student not found')
+  }
+
+  if (student.role.name !== 'STUDENT') {
+    throw new AdminValidationError('Only student accounts can be updated')
+  }
+
+  const existing = await prisma.user.findUnique({
+    where: { username: username.trim() },
+    select: { id: true },
+  })
+
+  if (existing && existing.id !== studentId) {
+    throw new Error('Student ID already registered')
+  }
+
+  try {
+    const updated = await prisma.user.update({
+      where: { id: studentId },
+      data: { username: username.trim() },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+        role: { select: { name: true } },
+        createdAt: true,
+      },
+    })
+
+    return {
+      id: updated.id,
+      name: updated.name,
+      username: updated.username,
+      email: updated.email,
+      role: updated.role.name,
+      createdAt: updated.createdAt,
+    }
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002'
+    ) {
+      throw new Error('Student ID already registered')
+    }
+    throw error
   }
 }

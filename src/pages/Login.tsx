@@ -9,7 +9,7 @@ const inputClassName =
   'w-full px-3.5 py-2.5 border border-border-subtle rounded-control text-sm bg-surface text-ink-strong placeholder:text-ink-muted transition-colors duration-150 hover:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500'
 
 export function Login() {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -22,7 +22,7 @@ export function Login() {
     setIsSubmitting(true)
 
     try {
-      await login({ email, password })
+      await login({ username, password })
       navigate('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
@@ -59,18 +59,18 @@ export function Login() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-ink mb-1.5">
-            Email
+          <label htmlFor="username" className="block text-sm font-medium text-ink mb-1.5">
+            Username / Student ID
           </label>
           <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            id="username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
-            autoComplete="email"
+            autoComplete="username"
             className={inputClassName}
-            placeholder="you@example.com"
+            placeholder="Your Student ID or username"
           />
         </div>
 

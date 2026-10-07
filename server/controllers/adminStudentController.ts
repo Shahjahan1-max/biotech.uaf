@@ -36,3 +36,28 @@ export async function getStudents(req: Request, res: Response) {
     res.status(500).json({ error: 'Failed to fetch students' })
   }
 }
+
+export async function updateStudentUsername(req: Request, res: Response) {
+  try {
+    const username = typeof req.body?.username === 'string' ? req.body.username : ''
+    const student = await adminStudentService.updateStudentUsername(
+      req.params.id ?? '',
+      username
+    )
+    res.json({ student })
+  } catch (error) {
+    if (error instanceof adminStudentService.AdminValidationError) {
+      res.status(400).json({ error: error.message })
+      return
+    }
+    if (error instanceof Error && error.message === 'Student not found') {
+      res.status(404).json({ error: 'Student not found' })
+      return
+    }
+    if (error instanceof Error && error.message === 'Student ID already registered') {
+      res.status(409).json({ error: 'Student ID already registered' })
+      return
+    }
+    res.status(500).json({ error: 'Failed to update Student ID' })
+  }
+}
