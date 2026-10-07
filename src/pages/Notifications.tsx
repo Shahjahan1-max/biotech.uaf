@@ -9,6 +9,7 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
   deleteNotification,
+  emitNotificationsChanged,
 } from '../services/notifications'
 import type { Notification, NotificationListResponse } from '../types/notification'
 
@@ -35,6 +36,8 @@ export function Notifications() {
   const [unreadOnly, setUnreadOnly] = useState(false)
   const [page, setPage] = useState(1)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [isMarkingAll, setIsMarkingAll] = useState(false)
+  const [pendingMarkId, setPendingMarkId] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
@@ -68,23 +71,36 @@ export function Notifications() {
   }
 
   async function handleMarkRead(notification: Notification) {
+    if (pendingMarkId) return
     setActionError('')
+    const wasUnread = !notification.isRead
+    setPendingMarkId(notification.id)
     try {
-      if (!notification.readAt) await markNotificationRead(notification.id)
+      if (wasUnread) {
+        await markNotificationRead(notification.id)
+        emitNotificationsChanged()
+      }
       if (notification.link) navigate(notification.link)
-      else refresh()
+      else if (wasUnread) refresh()
     } catch (err) {
       reportActionError(err, 'Failed to mark notification as read')
+    } finally {
+      setPendingMarkId(null)
     }
   }
 
   async function handleMarkAllRead() {
+    if (isMarkingAll || unreadCount === 0) return
     setActionError('')
+    setIsMarkingAll(true)
     try {
       await markAllNotificationsRead()
+      emitNotificationsChanged()
       refresh()
     } catch (err) {
       reportActionError(err, 'Failed to mark all notifications as read')
+    } finally {
+      setIsMarkingAll(false)
     }
   }
 
@@ -93,6 +109,7 @@ export function Notifications() {
     setActionError('')
     try {
       await deleteNotification(id)
+      emitNotificationsChanged()
       if (result.items.length === 1 && page > 1) setPage((current) => current - 1)
       else refresh()
     } catch (err) {
@@ -113,9 +130,9 @@ export function Notifications() {
           <Button
             variant="outline"
             onClick={handleMarkAllRead}
-            disabled={isLoading || unreadCount === 0}
+            disabled={isLoading || isMarkingAll || unreadCount === 0}
           >
-            Mark all as read
+            {isMarkingAll ? 'Marking...' : 'Mark all as read'}
           </Button>
         }
       />
@@ -214,7 +231,8 @@ export function Notifications() {
         <>
           <div className="space-y-3">
             {result.items.map((notification) => {
-              const isUnread = notification.readAt === null
+              const isUnread = !notification.isRead
+              const isPending = pendingMarkId === notification.id
               return (
                 <div
                   key={notification.id}
@@ -262,8 +280,9 @@ export function Notifications() {
                           size="sm"
                           variant="outline"
                           onClick={() => handleMarkRead(notification)}
+                          disabled={isPending}
                         >
-                          Mark as read
+                          {isPending ? 'Marking...' : 'Mark as read'}
                         </Button>
                       )}
                       {notification.link && (
@@ -271,6 +290,7 @@ export function Notifications() {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleMarkRead(notification)}
+                          disabled={isPending}
                         >
                           Open
                         </Button>

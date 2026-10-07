@@ -12,6 +12,7 @@ export interface Notification {
   title: string
   message: string
   link: string | null
+  isRead: boolean
   readAt: string | null
   createdAt: string
 }

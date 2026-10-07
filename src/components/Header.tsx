@@ -2,7 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { cn } from '../utils/cn'
 import { useAuth } from '../hooks/useAuth'
-import { getUnreadCount, listNotifications } from '../services/notifications'
+import {
+  getUnreadCount,
+  listNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+  NOTIFICATIONS_CHANGED_EVENT,
+} from '../services/notifications'
+import { NotificationTypeBadge } from './NotificationTypeBadge'
 import type { Notification } from '../types/notification'
 
 const navItems = [
@@ -28,6 +35,10 @@ function BellIcon({ className }: { className?: string }) {
   )
 }
 
+function currentTimestamp(): string {
+  return new Date().toISOString()
+}
+
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [bellOpen, setBellOpen] = useState(false)
@@ -35,6 +46,7 @@ export function Header() {
   const [preview, setPreview] = useState<Notification[]>([])
   const [previewLoading, setPreviewLoading] = useState(false)
   const [previewError, setPreviewError] = useState('')
+  const [markingAll, setMarkingAll] = useState(false)
   const bellRef = useRef<HTMLDivElement | null>(null)
   const mobileMenuRef = useRef<HTMLElement | null>(null)
   const menuToggleRef = useRef<HTMLButtonElement | null>(null)
@@ -56,14 +68,21 @@ export function Header() {
     if (!isAuthenticated) return
 
     let active = true
-    getUnreadCount()
-      .then((data) => {
-        if (active) setUnreadCount(data.count)
-      })
-      .catch(() => {})
+
+    function refreshUnreadCount() {
+      getUnreadCount()
+        .then((data) => {
+          if (active) setUnreadCount(data.count)
+        })
+        .catch(() => {})
+    }
+
+    refreshUnreadCount()
+    window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, refreshUnreadCount)
 
     return () => {
       active = false
+      window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, refreshUnreadCount)
     }
   }, [isAuthenticated])
 
@@ -123,9 +142,44 @@ export function Header() {
     }
   }
 
-  function handlePreviewSelect(notification: Notification) {
+  async function handlePreviewSelect(notification: Notification) {
+    if (!notification.isRead) {
+      setPreviewError('')
+      try {
+        await markNotificationRead(notification.id)
+      } catch {
+        setPreviewError('Unable to mark notification as read.')
+        return
+      }
+      const markedAt = currentTimestamp()
+      setPreview((items) =>
+        items.map((item) =>
+          item.id === notification.id ? { ...item, isRead: true, readAt: markedAt } : item
+        )
+      )
+      setUnreadCount((count) => Math.max(0, count - 1))
+    }
     setBellOpen(false)
     navigate(notification.link ?? '/notifications')
+  }
+
+  async function handlePreviewMarkAll() {
+    if (markingAll || unreadCount === 0) return
+    setMarkingAll(true)
+    setPreviewError('')
+    try {
+      await markAllNotificationsRead()
+    } catch {
+      setPreviewError('Unable to mark all as read.')
+      return
+    } finally {
+      setMarkingAll(false)
+    }
+    const markedAt = currentTimestamp()
+    setPreview((items) =>
+      items.map((item) => (item.isRead ? item : { ...item, isRead: true, readAt: markedAt }))
+    )
+    setUnreadCount(0)
   }
 
   async function handleLogout() {
@@ -234,13 +288,25 @@ export function Header() {
                         <span className="text-sm font-semibold text-ink-strong">
                           Notifications
                         </span>
-                        <Link
-                          to="/notifications"
-                          onClick={() => setBellOpen(false)}
-                          className="text-xs font-medium text-emerald-700 hover:text-emerald-800 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-                        >
-                          View all
-                        </Link>
+                        <div className="flex items-center gap-3">
+                          {unreadCount > 0 && (
+                            <button
+                              type="button"
+                              onClick={handlePreviewMarkAll}
+                              disabled={markingAll}
+                              className="text-xs font-medium text-ink-muted hover:text-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                            >
+                              {markingAll ? 'Marking...' : 'Mark all'}
+                            </button>
+                          )}
+                          <Link
+                            to="/notifications"
+                            onClick={() => setBellOpen(false)}
+                            className="text-xs font-medium text-emerald-700 hover:text-emerald-800 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                          >
+                            View all
+                          </Link>
+                        </div>
                       </div>
 
                       {previewLoading && (
@@ -249,7 +315,7 @@ export function Header() {
                         </div>
                       )}
 
-                      {!previewLoading && previewError && (
+                      {!previewLoading && previewError && preview.length === 0 && (
                         <div className="px-4 py-6 text-center text-sm text-red-600">
                           {previewError}
                         </div>
@@ -261,62 +327,72 @@ export function Header() {
                         </div>
                       )}
 
-                      {!previewLoading && !previewError && preview.length > 0 && (
-                        <div className="max-h-80 overflow-y-auto divide-y divide-border-subtle">
-                          {preview.map((notification) => {
-                            const isUnread = notification.readAt === null
-                            return (
-                              <button
-                                key={notification.id}
-                                type="button"
-                                onClick={() => handlePreviewSelect(notification)}
-                                className={cn(
-                                  'w-full text-left px-4 py-3 transition-colors duration-150',
-                                  isUnread ? 'bg-surface-tint/60 hover:bg-surface-tint' : 'hover:bg-surface-soft'
-                                )}
-                              >
-                                <div className="flex items-start gap-2.5">
-                                  <span
-                                    aria-hidden="true"
-                                    className={cn(
-                                      'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-control ring-1 ring-inset',
-                                      isUnread
-                                        ? 'bg-emerald-50 text-emerald-600 ring-emerald-600/15'
-                                        : 'bg-surface-soft text-ink-muted ring-border-subtle'
-                                    )}
-                                  >
-                                    <BellIcon className="w-4 h-4" />
-                                  </span>
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-1.5 min-w-0">
-                                      {isUnread && (
-                                        <span
-                                          aria-label="Unread"
-                                          className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0"
-                                        />
+                      {!previewLoading && preview.length > 0 && (
+                        <>
+                          {previewError && (
+                            <div className="px-4 py-2 text-xs text-red-600 bg-red-50 border-b border-border-subtle">
+                              {previewError}
+                            </div>
+                          )}
+                          <div className="max-h-80 overflow-y-auto divide-y divide-border-subtle">
+                            {preview.map((notification) => {
+                              const isUnread = !notification.isRead
+                              return (
+                                <button
+                                  key={notification.id}
+                                  type="button"
+                                  onClick={() => handlePreviewSelect(notification)}
+                                  className={cn(
+                                    'w-full text-left px-4 py-3 transition-colors duration-150',
+                                    isUnread ? 'bg-surface-tint/60 hover:bg-surface-tint' : 'hover:bg-surface-soft'
+                                  )}
+                                >
+                                  <div className="flex items-start gap-2.5">
+                                    <span
+                                      aria-hidden="true"
+                                      className={cn(
+                                        'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-control ring-1 ring-inset',
+                                        isUnread
+                                          ? 'bg-emerald-50 text-emerald-600 ring-emerald-600/15'
+                                          : 'bg-surface-soft text-ink-muted ring-border-subtle'
                                       )}
-                                      <p
-                                        className={cn(
-                                          'text-sm text-ink-strong truncate min-w-0',
-                                          isUnread ? 'font-semibold' : 'font-medium'
+                                    >
+                                      <BellIcon className="w-4 h-4" />
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex items-center gap-1.5 min-w-0">
+                                        {isUnread && (
+                                          <span
+                                            aria-label="Unread"
+                                            className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0"
+                                          />
                                         )}
-                                      >
-                                        {notification.title}
+                                        <p
+                                          className={cn(
+                                            'text-sm text-ink-strong truncate min-w-0',
+                                            isUnread ? 'font-semibold' : 'font-medium'
+                                          )}
+                                        >
+                                          {notification.title}
+                                        </p>
+                                      </div>
+                                      <p className="text-xs text-ink truncate">
+                                        {notification.message}
                                       </p>
+                                      <div className="flex items-center gap-1.5 mt-1 min-w-0">
+                                        <NotificationTypeBadge type={notification.type} />
+                                        <p className="text-xs text-ink-muted truncate">
+                                          {new Date(notification.createdAt).toLocaleDateString()}
+                                        </p>
+                                      </div>
                                     </div>
-                                    <p className="text-xs text-ink truncate">
-                                      {notification.message}
-                                    </p>
-                                    <p className="text-xs text-ink-muted mt-0.5">
-                                      {new Date(notification.createdAt).toLocaleDateString()}
-                                    </p>
                                   </div>
-                                </div>
-                              </button>
-                            )
-                          })}
-                        </div>
-                      )}
+                                </button>
+                              )
+                            })}
+                          </div>
+                          </>
+                        )}
 
                       <div className="border-t border-border-subtle px-4 py-3">
                         <Link

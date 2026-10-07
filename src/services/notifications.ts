@@ -37,3 +37,9 @@ export async function markAllNotificationsRead(): Promise<void> {
 export async function deleteNotification(id: string): Promise<void> {
   await apiFetch(`/notifications/${id}`, { method: 'DELETE' })
 }
+
+export const NOTIFICATIONS_CHANGED_EVENT = 'biotech:notifications-changed'
+
+export function emitNotificationsChanged(): void {
+  window.dispatchEvent(new Event(NOTIFICATIONS_CHANGED_EVENT))
+}
