@@ -4,6 +4,7 @@ import { SectionHeader } from '../components/SectionHeader'
 import { Button } from '../components/Button'
 import { Spinner } from '../components/Spinner'
 import { NotificationTypeBadge } from '../components/NotificationTypeBadge'
+import { PushNotificationsToggle } from '../components/PushNotificationsToggle'
 import {
   listNotifications,
   markNotificationRead,
@@ -136,6 +137,8 @@ export function Notifications() {
           </Button>
         }
       />
+
+      <PushNotificationsToggle />
 
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <label className="flex items-center gap-2 text-sm text-neutral-600">

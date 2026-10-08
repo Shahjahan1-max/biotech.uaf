@@ -76,4 +76,9 @@ export const config = {
       process.env.CLOUDINARY_DELIVERY_BASE || 'https://res.cloudinary.com'
     ),
   },
+  vapid: {
+    publicKey: process.env.VAPID_PUBLIC_KEY || '',
+    privateKey: process.env.VAPID_PRIVATE_KEY || '',
+    subject: process.env.VAPID_SUBJECT || 'https://biotechuaf.com',
+  },
 }

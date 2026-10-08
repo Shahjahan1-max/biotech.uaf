@@ -61,6 +61,9 @@ with a role-based admin dashboard.
    CLOUDINARY_URL="cloudinary://<api_key>:<api_secret>@<cloud_name>"
    CLOUDINARY_FOLDER="biotech"
    MAX_FILE_SIZE="10485760"
+   VAPID_PUBLIC_KEY="<run: npx web-push generate-vapid-keys>"
+   VAPID_PRIVATE_KEY="<run: npx web-push generate-vapid-keys>"
+   VAPID_SUBJECT="https://biotechuaf.com"
    VITE_API_URL="http://localhost:3001/api"
    ```
 
@@ -72,6 +75,14 @@ with a role-based admin dashboard.
    and redeploys; without it, files are stored in `UPLOAD_DIR` on the local disk,
    which is fine for local development but is lost whenever the server is redeployed.
    `CLOUDINARY_FOLDER` is optional and organizes files in your Cloudinary media library.
+
+   `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` enable Web Push notifications. Generate a
+   pair with `npx web-push generate-vapid-keys` (per environment) and keep the private
+   key secret — never commit it. `VAPID_SUBJECT` is the contact URI sent to push
+   services (defaults to `https://biotechuaf.com`). Local backend: root `.env`.
+   Production backend (Render): set all three in the Render dashboard. The frontend
+   fetches the public key from the API, so no Vercel variables are needed. Push
+   features degrade gracefully when these are unset.
 
 3. **Create the database and run migrations**
 
