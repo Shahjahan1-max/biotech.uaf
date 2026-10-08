@@ -69,6 +69,11 @@ export async function getResourceById(id: string): Promise<StudyResource | null>
   })
 }
 
+function resourceTypeLabel(type: ResourceType): string {
+  const words = type.replace(/_/g, ' ').toLowerCase()
+  return `${words.charAt(0).toUpperCase()}${words.slice(1)}`
+}
+
 export async function createResource(input: ResourceInput): Promise<StudyResource> {
   validateInput(input)
   const subject = await prisma.subject.findUnique({ where: { id: input.subjectId } })
@@ -79,12 +84,17 @@ export async function createResource(input: ResourceInput): Promise<StudyResourc
     include: { subject: true },
   })
 
+  const typeLabel = resourceTypeLabel(resource.resourceType)
   await safeNotify(
     () =>
       notifyStudents({
         type: 'RESOURCE',
-        title: resource.title,
-        message: excerpt(resource.description ?? '') || `New ${subject.name} resource`,
+        title: `New study resource: ${resource.title}`,
+        message: excerpt(
+          resource.description
+            ? `${typeLabel} resource for ${subject.name} — ${resource.description}`
+            : `New ${typeLabel} resource for ${subject.name}`
+        ),
         link: '/resources',
       }),
     'resource-create'
