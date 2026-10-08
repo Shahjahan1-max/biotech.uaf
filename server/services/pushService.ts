@@ -219,3 +219,10 @@ export async function deliverNotificationPush(
     }
   }
 }
+
+export function safeBackgroundPushError(error: unknown): string {
+  if (!(error instanceof Error)) return ''
+  const message = error.message.trim()
+  if (message.length === 0 || message.length > 200 || message.includes('://')) return ''
+  return message
+}

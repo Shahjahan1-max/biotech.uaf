@@ -10,7 +10,7 @@ import {
   ANNOUNCEMENT_TYPES,
 } from '../types/announcement.js'
 import { excerpt, notifyStudents, safeNotify } from './notificationService.js'
-import { deliverNotificationPush } from './pushService.js'
+import { deliverNotificationPush, safeBackgroundPushError } from './pushService.js'
 
 
 const TITLE_MIN_LENGTH = 5
@@ -272,13 +272,6 @@ export async function getAnnouncementById(
   if (!record) return null
   if (!isAdmin && isExpired(record.expiresAt)) return null
   return toAnnouncement(record)
-}
-
-export function safeBackgroundPushError(error: unknown): string {
-  if (!(error instanceof Error)) return ''
-  const message = error.message.trim()
-  if (message.length === 0 || message.length > 200 || message.includes('://')) return ''
-  return message
 }
 
 export async function createAnnouncement(

@@ -3,6 +3,7 @@ import { prisma } from '../utils/prisma.js'
 import { storageService } from './storage/index.js'
 import type { ResourceInput, StudyResource } from '../types/resource.js'
 import { excerpt, notifyStudents, safeNotify } from './notificationService.js'
+import { deliverNotificationPush, safeBackgroundPushError } from './pushService.js'
 
 
 const VALID_TYPES: ResourceType[] = ['NOTE', 'STUDY_GUIDE', 'PRESENTATION', 'REFERENCE', 'OTHER']
@@ -85,7 +86,7 @@ export async function createResource(input: ResourceInput): Promise<StudyResourc
   })
 
   const typeLabel = resourceTypeLabel(resource.resourceType)
-  await safeNotify(
+  const createdNotifications = await safeNotify(
     () =>
       notifyStudents({
         type: 'RESOURCE',
@@ -99,6 +100,17 @@ export async function createResource(input: ResourceInput): Promise<StudyResourc
       }),
     'resource-create'
   )
+
+  if (createdNotifications && createdNotifications.length > 0) {
+    void deliverNotificationPush(createdNotifications).catch((error: unknown) => {
+      const detail = safeBackgroundPushError(error)
+      if (detail) {
+        console.error(`[Push] Background notification delivery failed: ${detail}`)
+      } else {
+        console.error('[Push] Background notification delivery failed')
+      }
+    })
+  }
 
   return resource
 }
