@@ -159,7 +159,8 @@ export async function sendToSubscription(
 
 export async function sendPushToUser(
   userId: string,
-  payload: PushPayload
+  payload: PushPayload,
+  sender: PushSender = defaultSender
 ): Promise<{ sent: number; removed: number; failed: number }> {
   ensureVapidConfigured()
 
@@ -169,11 +170,52 @@ export async function sendPushToUser(
   let failed = 0
 
   for (const subscription of subscriptions) {
-    const outcome = await sendToSubscription(subscription, payload)
+    const outcome = await sendToSubscription(subscription, payload, sender)
     if (outcome === 'sent') sent += 1
     else if (outcome === 'removed') removed += 1
     else failed += 1
   }
 
   return { sent, removed, failed }
+}
+
+export interface NotificationPushRecord {
+  id: string
+  userId: string
+  type: string
+  title: string
+  message: string
+  link: string | null
+}
+
+function sameOriginUrl(link: string | null): string {
+  return typeof link === 'string' && link.startsWith('/') ? link : ''
+}
+
+export async function deliverNotificationPush(
+  records: NotificationPushRecord[],
+  sender?: PushSender
+): Promise<void> {
+  if (!isPushConfigured()) return
+
+  for (const record of records) {
+    try {
+      await sendPushToUser(
+        record.userId,
+        {
+          title: record.title,
+          body: record.message,
+          notificationId: record.id,
+          url: sameOriginUrl(record.link),
+          type: record.type,
+        },
+        sender
+      )
+    } catch (error) {
+      console.error(
+        `Push fan-out failed for notification ${record.id}:`,
+        error instanceof Error ? error.message : 'unknown error'
+      )
+    }
+  }
 }

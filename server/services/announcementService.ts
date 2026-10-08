@@ -10,6 +10,7 @@ import {
   ANNOUNCEMENT_TYPES,
 } from '../types/announcement.js'
 import { excerpt, notifyStudents, safeNotify } from './notificationService.js'
+import { deliverNotificationPush } from './pushService.js'
 
 
 const TITLE_MIN_LENGTH = 5
@@ -273,6 +274,13 @@ export async function getAnnouncementById(
   return toAnnouncement(record)
 }
 
+export function safeBackgroundPushError(error: unknown): string {
+  if (!(error instanceof Error)) return ''
+  const message = error.message.trim()
+  if (message.length === 0 || message.length > 200 || message.includes('://')) return ''
+  return message
+}
+
 export async function createAnnouncement(
   authorId: string,
   body: unknown
@@ -293,7 +301,7 @@ export async function createAnnouncement(
     include: announcementInclude,
   })
 
-  await safeNotify(
+  const createdNotifications = await safeNotify(
     () =>
       notifyStudents(
         {
@@ -306,6 +314,17 @@ export async function createAnnouncement(
       ),
     'announcement-create'
   )
+
+  if (createdNotifications && createdNotifications.length > 0) {
+    void deliverNotificationPush(createdNotifications).catch((error: unknown) => {
+      const detail = safeBackgroundPushError(error)
+      if (detail) {
+        console.error(`[Push] Background notification delivery failed: ${detail}`)
+      } else {
+        console.error('[Push] Background notification delivery failed')
+      }
+    })
+  }
 
   return toAnnouncement(record)
 }

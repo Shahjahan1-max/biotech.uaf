@@ -26,6 +26,15 @@ export interface NotificationInput {
   link?: string | null
 }
 
+export interface CreatedNotification {
+  id: string
+  userId: string
+  type: PrismaNotificationType
+  title: string
+  message: string
+  link: string | null
+}
+
 export interface NotificationRecord {
   id: string
   type: PrismaNotificationType
@@ -95,11 +104,15 @@ export function excerpt(text: string, maxLength = 160): string {
   return `${cleaned.slice(0, maxLength - 1)}…`
 }
 
-export async function safeNotify(task: () => Promise<void>, context: string): Promise<void> {
+export async function safeNotify<T>(
+  task: () => Promise<T>,
+  context: string
+): Promise<T | undefined> {
   try {
-    await task()
+    return await task()
   } catch (error) {
     console.error(`Notification task failed (${context}):`, error)
+    return undefined
   }
 }
 
@@ -120,9 +133,9 @@ export async function createNotification(
 export async function createNotificationsForUsers(
   userIds: string[],
   input: NotificationInput
-): Promise<void> {
+): Promise<CreatedNotification[]> {
   const targets = uniqueIds(userIds)
-  if (targets.length === 0) return
+  if (targets.length === 0) return []
 
   const existing = await prisma.notification.findMany({
     where: {
@@ -136,9 +149,9 @@ export async function createNotificationsForUsers(
   })
   const alreadyNotified = new Set(existing.map((record) => record.userId))
   const fresh = targets.filter((id) => !alreadyNotified.has(id))
-  if (fresh.length === 0) return
+  if (fresh.length === 0) return []
 
-  await prisma.notification.createMany({
+  return prisma.notification.createManyAndReturn({
     data: fresh.map((userId) => ({
       userId,
       type: input.type,
@@ -146,6 +159,14 @@ export async function createNotificationsForUsers(
       message: input.message,
       link: input.link ?? null,
     })),
+    select: {
+      id: true,
+      userId: true,
+      type: true,
+      title: true,
+      message: true,
+      link: true,
+    },
   })
 }
 
@@ -162,9 +183,9 @@ export async function getStudentIds(excludeUserId?: string): Promise<string[]> {
 export async function notifyStudents(
   input: NotificationInput,
   excludeUserId?: string
-): Promise<void> {
+): Promise<CreatedNotification[]> {
   const studentIds = await getStudentIds(excludeUserId)
-  await createNotificationsForUsers(studentIds, input)
+  return createNotificationsForUsers(studentIds, input)
 }
 
 export async function getUserNotifications(
