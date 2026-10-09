@@ -1,6 +1,7 @@
 import { prisma } from '../utils/prisma.js'
 import type { Assignment, AssignmentInput } from '../types/assignment.js'
 import { excerpt, notifyStudents, safeNotify } from './notificationService.js'
+import { deliverNotificationPush, safeBackgroundPushError } from './pushService.js'
 
 
 const FOURTY_EIGHT_HOURS = 48 * 60 * 60 * 1000
@@ -66,7 +67,7 @@ export async function createAssignment(input: AssignmentInput): Promise<Assignme
   })
 
   const dueLabel = dueDate.toLocaleDateString()
-  await safeNotify(
+  const createdNotifications = await safeNotify(
     () =>
       notifyStudents({
         type: 'ASSIGNMENT',
@@ -80,6 +81,17 @@ export async function createAssignment(input: AssignmentInput): Promise<Assignme
       }),
     'assignment-create'
   )
+
+  if (createdNotifications && createdNotifications.length > 0) {
+    void deliverNotificationPush(createdNotifications).catch((error: unknown) => {
+      const detail = safeBackgroundPushError(error)
+      if (detail) {
+        console.error(`[Push] Background notification delivery failed: ${detail}`)
+      } else {
+        console.error('[Push] Background notification delivery failed')
+      }
+    })
+  }
 
   return withComputedFields(assignment)
 }
