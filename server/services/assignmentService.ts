@@ -65,14 +65,17 @@ export async function createAssignment(input: AssignmentInput): Promise<Assignme
     include: { subject: true },
   })
 
+  const dueLabel = dueDate.toLocaleDateString()
   await safeNotify(
     () =>
       notifyStudents({
         type: 'ASSIGNMENT',
-        title: assignment.title,
-        message:
-          excerpt(assignment.description ?? '') ||
-          `Due ${assignment.subject.name} · ${dueDate.toLocaleDateString()}`,
+        title: `New assignment: ${assignment.title}`,
+        message: excerpt(
+          assignment.description
+            ? `Assignment for ${assignment.subject.name} due ${dueLabel} — ${assignment.description}`
+            : `New assignment for ${assignment.subject.name} — due ${dueLabel}`
+        ),
         link: `/assignments/${assignment.id}`,
       }),
     'assignment-create'
